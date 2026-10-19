@@ -34,6 +34,51 @@
         </div>
     </div>
 
+    <section class="infra-analytics mb-4" aria-labelledby="tagihan-analytics-title">
+        <h2 class="h5 mb-2" id="tagihan-analytics-title">Analitik Tagihan IPAS</h2>
+        <p class="small text-body-secondary mb-3">Kartu dan diagram dihitung dari rincian termin sesuai filter TP. Tabel di bawah tetap menampilkan total seluruh rincian untuk setiap site yang cocok.</p>
+        <div class="row g-3 mb-3">
+            @foreach ([
+                ['key' => 'sites', 'label' => 'Total Site', 'class' => 'primary', 'icon' => 'site'],
+                ['key' => 'details', 'label' => 'Jumlah Rincian Termin', 'class' => 'success', 'icon' => 'details'],
+                ['key' => 'amount', 'label' => 'Total Tagihan', 'class' => 'info', 'icon' => 'amount'],
+                ['key' => 'details_per_site', 'label' => 'Rata-rata Rincian / Site', 'class' => 'warning', 'icon' => 'average'],
+            ] as $card)
+                <div class="col-xl-3 col-md-6 col-12">
+                    <div class="card h-100 border-{{ $card['class'] }} infra-summary-card">
+                        <div class="card-body py-2 infra-summary-card-body">
+                            <div>
+                                <div class="infra-summary-label text-body-secondary">{{ $card['label'] }}</div>
+                                <div class="fs-4 fw-bold" data-ipas-metric="{{ $card['key'] }}" aria-live="polite">—</div>
+                            </div>
+                            <span class="infra-summary-icon" aria-hidden="true">
+                                @switch($card['icon'])
+                                    @case('site')
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 7 21M12 3l5 18M7 21h10M8 16h8M9 11h6"/></svg>
+                                        @break
+                                    @case('details')
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>
+                                        @break
+                                    @case('amount')
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M15 8H9v8h6M9 12h5"/></svg>
+                                        @break
+                                    @default
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V5M4 19h16M8 15l4-5 3 2 4-6"/></svg>
+                                @endswitch
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            @endforeach
+        </div>
+        <div class="alert alert-info py-2 mb-3" id="tagihan-analytics-status" role="status">Memuat ringkasan Tagihan IPAS…</div>
+        <div class="row g-3 infra-detail-chart-grid d-none" id="tagihan-chart-grid">
+            <div class="col-xl-6 d-flex"><div class="card h-100 w-100 infra-detail-chart-card"><div class="card-header fw-semibold">Distribusi Rincian per TP</div><div class="card-body"><div id="tagihan-tp-chart" class="infra-detail-chart" style="height:320px"></div></div></div></div>
+            <div class="col-xl-6 d-flex"><div class="card h-100 w-100 infra-detail-chart-card"><div class="card-header fw-semibold">Nominal Tagihan per Jenis Kontrak</div><div class="card-body"><div id="tagihan-contract-chart" class="infra-detail-chart" style="height:320px"></div></div></div></div>
+            <div class="col-12 d-flex"><div class="card h-100 w-100 infra-detail-chart-card"><div class="card-header fw-semibold">Rincian menurut Tahun Awal Termin</div><div class="card-body"><div id="tagihan-year-chart" class="infra-detail-chart" style="height:320px"></div></div></div></div>
+        </div>
+    </section>
+
     <div class="card">
         <div class="card-body">
             <p class="small text-muted mb-3">Satu baris per Site ID. Termin dan periode merangkum nomor yang tersedia; rentang tanggal mencakup seluruh kontrak. Total Tagihan adalah jumlah semua rincian, bukan nilai per termin. Klik site untuk melihat setiap siklus kontrak dan dokumen sumbernya.</p>
@@ -67,6 +112,8 @@
 @endsection
 
 @push('scripts')
+<script src="https://code.highcharts.com/highcharts.js"></script>
+<script src="https://code.highcharts.com/modules/accessibility.js"></script>
 <script>
 $(function () {
     const date = (data) => {
@@ -96,6 +143,94 @@ $(function () {
             $(row).css('cursor', 'pointer').attr('title', 'Klik untuk melihat detail lengkap');
         },
     });
+
+    const number = new Intl.NumberFormat('id-ID');
+    const amount = new Intl.NumberFormat('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const compact = new Intl.NumberFormat('id-ID', { notation: 'compact', maximumFractionDigits: 2 });
+    let analyticsRequest;
+    let currentAnalytics;
+    let charts = [];
+
+    const chartTheme = () => {
+        const dark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+        const text = dark ? '#f1f5f9' : '#0f172a';
+        const muted = dark ? '#cbd5e1' : '#64748b';
+        const grid = dark ? '#334155' : '#e2e8f0';
+        return {
+            colors: window.SimasterChartPalette.series,
+            credits: { enabled: false },
+            chart: { backgroundColor: dark ? '#111827' : '#ffffff', className: 'infra-analytics-chart' },
+            title: { text: null },
+            legend: { itemStyle: { color: text }, itemHoverStyle: { color: text } },
+            xAxis: { lineColor: grid, labels: { style: { color: muted } } },
+            yAxis: { gridLineColor: grid, title: { text: null }, labels: { style: { color: muted } } },
+            plotOptions: { series: { borderWidth: 0, dataLabels: { style: { color: text, textOutline: 'none' } } } },
+        };
+    };
+
+    const topWithOther = (rows, limit) => {
+        const points = rows.map(row => ({ name: row.label, y: Number(row.total) || 0 }))
+            .sort((a, b) => b.y - a.y);
+        const shown = points.slice(0, limit);
+        if (points.length > limit) shown.push({ name: 'Lainnya', y: points.slice(limit).reduce((sum, point) => sum + point.y, 0) });
+        return shown;
+    };
+
+    const renderAnalytics = (data) => {
+        currentAnalytics = data;
+        $('[data-ipas-metric="sites"]').text(number.format(data.metrics.sites));
+        $('[data-ipas-metric="details"]').text(number.format(data.metrics.details));
+        $('[data-ipas-metric="details_per_site"]').text(number.format(data.metrics.details_per_site));
+        const total = Number(data.metrics.amount);
+        $('[data-ipas-metric="amount"]').text(`Rp ${compact.format(total)}`)
+            .attr('title', `Rp ${amount.format(total)}`);
+        charts.forEach(chart => chart.destroy());
+        charts = [];
+        const hasDetails = data.metrics.details > 0;
+        $('#tagihan-chart-grid').toggleClass('d-none', !hasDetails || !window.Highcharts);
+        $('#tagihan-analytics-status').toggleClass('d-none', hasDetails && !!window.Highcharts)
+            .text(hasDetails ? 'Diagram belum dapat dimuat. Coba segarkan halaman.' : 'Belum ada rincian termin untuk filter TP ini.');
+        if (!hasDetails || !window.Highcharts) return;
+
+        const providers = topWithOther(data.providers, 7);
+        const contracts = topWithOther(data.contracts, 8);
+        charts.push(Highcharts.chart('tagihan-tp-chart', Highcharts.merge(chartTheme(), {
+            chart: { type: 'pie' },
+            plotOptions: { pie: { showInLegend: true, dataLabels: { enabled: false } } },
+            tooltip: { valueSuffix: ' rincian' },
+            series: [{ name: 'Rincian', data: providers }],
+        })));
+        charts.push(Highcharts.chart('tagihan-contract-chart', Highcharts.merge(chartTheme(), {
+            chart: { type: 'bar' },
+            xAxis: { type: 'category' },
+            yAxis: { labels: { formatter: function () { return compact.format(this.value); } } },
+            legend: { enabled: false },
+            tooltip: { valuePrefix: 'Rp ', valueDecimals: 2 },
+            series: [{ name: 'Total Tagihan', data: contracts }],
+        })));
+        charts.push(Highcharts.chart('tagihan-year-chart', Highcharts.merge(chartTheme(), {
+            chart: { type: 'column' },
+            xAxis: { categories: data.years.map(row => row.label), labels: { rotation: -45 } },
+            yAxis: { min: 0, allowDecimals: false },
+            legend: { enabled: false },
+            tooltip: { valueSuffix: ' rincian' },
+            series: [{ name: 'Rincian', data: data.years.map(row => Number(row.total) || 0) }],
+        })));
+    };
+
+    const loadAnalytics = () => {
+        if (analyticsRequest) analyticsRequest.abort();
+        $('#tagihan-analytics-status').removeClass('d-none').removeClass('alert-danger').addClass('alert-info')
+            .text('Memuat ringkasan Tagihan IPAS…');
+        analyticsRequest = $.getJSON(@json(route('infrastruktur.recurring-tagihan-ipas.analytics')), { tp: $('#filter-tp').val() })
+            .done(renderAnalytics)
+            .fail((xhr, status) => {
+                if (status !== 'abort') $('#tagihan-analytics-status').removeClass('d-none').removeClass('alert-info')
+                    .addClass('alert-danger').text('Ringkasan gagal dimuat. Coba segarkan halaman.');
+            });
+    };
+    loadAnalytics();
+    window.addEventListener('simaster:theme-changed', () => { if (currentAnalytics) renderAnalytics(currentAnalytics); });
 
     const labels = {
         recurring: 'Recurring', siteid: 'Site ID', site_name: 'Site Name', contract_type: 'Contract Type',
@@ -152,7 +287,7 @@ $(function () {
         });
     });
 
-    $('#filter-tp').on('change', () => table.ajax.reload());
+    $('#filter-tp').on('change', () => { table.ajax.reload(); loadAnalytics(); });
     $('#page-size').on('change', function () { table.page.len(parseInt($(this).val())).draw(); });
 });
 </script>
