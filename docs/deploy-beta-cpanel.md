@@ -11,6 +11,8 @@ cd /home3/simawarw/beta.simawar.web.id
 /bin/bash -euo pipefail -- scripts/cpanel-deploy-beta.sh
 ```
 
+Jika commit baru memuat migrasi database, siapkan dan verifikasi paketnya lebih dulu dengan `scripts/cpanel-deploy-beta.sh --prepare-only`. Opsi ini tidak menjalankan preflight, menyalin aset publik, atau mengaktifkan rilis. Jalankan migrasi yang sudah ditinjau lewat `artisan` di `~/simawar-beta-deploy/releases/$(git rev-parse HEAD)`, lalu jalankan skrip tanpa opsi setelah skema siap. Perintah lengkap tersedia pada panduan [Tagihan IPAS](recurring-tagihan-ipas.md) dan [data operasional](operational-data-flow.md).
+
 Jika HEAD cPanel sudah memuat `.cpanel.yml` tetapi tetap menampilkan **The system cannot deploy**, periksa checkout **di server**, bukan `git status` pada komputer pengembangan:
 
 ```bash
