@@ -22,7 +22,7 @@
     <a class="btn btn-outline-secondary" href="{{ route('infrastruktur.'.$dataset.'.index') }}">Batal</a>
    </div>
   </form>
-  <div class="alert alert-info mt-4 mb-0">@if ($dataset === 'bapss') Upload BAPSS mengganti data modul ini. @elseif (in_array($dataset, ['sewa-lahan', 'combat'], true)) Workbook Rebuild mengganti seluruh data {{ $definition['label'] }} dari sheet aktifnya dan mencadangkan data sebelumnya. File template biasa menambahkan atau memperbarui entri. @else Upload menambahkan data baru dan memperbarui entri dengan kunci yang sama. Data lain tetap tersimpan. @endif Baris tanpa Site ID dilewati.</div>
+  <div class="alert alert-info mt-4 mb-0">@if ($dataset === 'bapss') Upload BAPSS mengganti data modul ini. @elseif (in_array($dataset, ['sewa-lahan', 'combat'], true)) Workbook Rebuild mengganti seluruh data {{ $definition['label'] }} dari sheet aktifnya dan mencadangkan data sebelumnya. File template biasa menambahkan atau memperbarui entri. @elseif ($dataset === 'recurring-tagihan-ipas') Setiap baris Excel adalah satu rincian termin yang disimpan di tabel rincian dan dirangkum otomatis per Site ID. Isi kolom Recurring bila tersedia agar kontrak paralel dapat dibedakan saat upload ulang. Gunakan Rincian CSV untuk menyimpan metadata sumber; file Excel ringkasan per site tidak dapat diunggah sebagai rincian. @else Upload menambahkan data baru dan memperbarui entri dengan kunci yang sama. Data lain tetap tersimpan. @endif Baris tanpa Site ID dilewati.</div>
  </div>
 </div>
 @endsection

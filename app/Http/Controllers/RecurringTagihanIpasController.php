@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\RecurringTagihanIpas;
 use App\Models\RecurringTagihanIpasTerm;
+use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
+use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -35,11 +37,16 @@ class RecurringTagihanIpasController extends Controller
     {
         $query = RecurringTagihanIpas::query();
 
-        // Filter khusus TP
-        if ($tp = $this->selectedTp($request)) {
-            $query->whereHas('terms', fn ($terms) => $terms->where('tp', $tp));
+        // Grafik dihitung dari rincian; tabel tetap satu baris per site yang
+        // mempunyai setidaknya satu rincian sesuai pilihan grafik dan TP.
+        if ($this->selectedTp($request) || $request->query('dimension', 'all') !== 'all') {
+            $query->whereHas('terms', fn ($terms) => $this->filterTerms($terms, $request));
         }
-        $query->orderBy('site_code');
+        match ($request->query('sort')) {
+            'amount_desc' => $query->orderByDesc('amount')->orderBy('site_code'),
+            'details_desc' => $query->orderByDesc('term_count')->orderBy('site_code'),
+            default => $query->orderBy('site_code'),
+        };
 
         return DataTables::of($query)
             ->addIndexColumn()
@@ -83,10 +90,23 @@ class RecurringTagihanIpasController extends Controller
             'id', 'site_id', 'site_code', 'site_name', 'tp', 'contract_type',
             'termin', 'periode_ke', 'termin_start', 'termin_end', 'amount', 'batch_name',
         ]);
+        $this->filterTerms($query, $request);
+
+        // Keep the chart's default order, while allowing the table headers to sort on demand.
+        if (! $request->query('order')) {
+            $request->query('sort') === 'amount_desc'
+                ? $query->orderByDesc('amount')->orderByDesc('id')
+                : $query->orderByDesc('id');
+        }
+
+        return DataTables::of($query)->addIndexColumn()->toJson();
+    }
+
+    private function filterTerms(EloquentBuilder|QueryBuilder $query, Request $request): void
+    {
         if ($tp = $this->selectedTp($request)) {
             $query->where('tp', $tp);
         }
-
         $dimension = $request->query('dimension', 'all');
         $value = $request->query('value');
         $value = is_string($value) ? $value : '';
@@ -123,15 +143,6 @@ class RecurringTagihanIpasController extends Controller
             default:
                 abort(422);
         }
-
-        // Keep the chart's default order, while allowing the table headers to sort on demand.
-        if (! $request->query('order')) {
-            $request->query('sort') === 'amount_desc'
-                ? $query->orderByDesc('amount')->orderByDesc('id')
-                : $query->orderByDesc('id');
-        }
-
-        return DataTables::of($query)->addIndexColumn()->toJson();
     }
 
     private function selectedTp(Request $request): ?string

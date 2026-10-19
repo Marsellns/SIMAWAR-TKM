@@ -130,6 +130,53 @@ class UploadExcelTemplateTest extends TestCase
         }
     }
 
+    public function test_recurring_tagihan_excel_upload_preserves_parallel_terms_and_updates_site_summary(): void
+    {
+        $this->actingAs($this->userWithRole('admin'));
+        $headers = InfrastructureUploadTemplate::headers('recurring-tagihan-ipas');
+        $this->assertContains('Recurring', $headers);
+        $this->get(route('infrastruktur.upload', 'recurring-tagihan-ipas'))
+            ->assertOk()->assertSee('Setiap baris Excel adalah satu rincian termin');
+
+        $upload = function (array $records) use ($headers): void {
+            $spreadsheet = new Spreadsheet;
+            $sheet = $spreadsheet->getActiveSheet();
+            $sheet->fromArray($headers, null, 'A1');
+            foreach ($records as $index => $record) {
+                $sheet->fromArray(array_map(static fn ($header) => $record[$header] ?? null, $headers), null, 'A'.($index + 2));
+            }
+            $path = sys_get_temp_dir().'/simaster-ipas-upload-'.uniqid('', true).'.xlsx';
+            (new Xlsx($spreadsheet))->save($path);
+            try {
+                $this->post(route('infrastruktur.upload.store', 'recurring-tagihan-ipas'), [
+                    'dataset_file' => new UploadedFile($path, 'ipas.xlsx',
+                        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', null, true),
+                ])->assertRedirect(route('infrastruktur.recurring-tagihan-ipas.index'));
+            } finally {
+                @unlink($path);
+                $spreadsheet->disconnectWorksheets();
+            }
+        };
+
+        $first = ['Site ID' => 'BKS648', 'Site Name' => 'Bekasi', 'TP' => 'DHOST',
+            'Contract Type' => 'MLA', 'Termin' => '1', 'Periode Ke' => '1',
+            'Termin Start' => '2026-01-01', 'Termin End' => '2026-12-31',
+            'Amount' => '100.25', 'Batch Name' => 'Batch 1', 'Recurring' => 'SRC-1'];
+        $upload([$first, array_replace($first, ['Amount' => '200.50', 'Recurring' => 'SRC-2']),
+            array_replace($first, ['Site ID' => 'JKP846', 'Amount' => '50.75', 'Recurring' => 'SRC-3'])]);
+        $this->assertDatabaseCount('recurring_tagihan_ipas', 2);
+        $this->assertDatabaseCount('recurring_tagihan_ipas_terms', 3);
+        $this->assertDatabaseHas('recurring_tagihan_ipas', ['site_code' => 'BKS648', 'term_count' => 2, 'amount' => '300.75']);
+
+        $upload([array_replace($first, ['Amount' => '125.25'])]);
+        $this->assertDatabaseCount('recurring_tagihan_ipas_terms', 3);
+        $this->assertDatabaseHas('recurring_tagihan_ipas', ['site_code' => 'BKS648', 'term_count' => 2, 'amount' => '325.75']);
+        $this->assertDatabaseHas('recurring_tagihan_ipas', ['site_code' => 'JKP846', 'term_count' => 1, 'amount' => '50.75']);
+        $sources = DB::table('recurring_tagihan_ipas_terms')->where('site_code', 'BKS648')->pluck('source_details')
+            ->map(fn ($json) => json_decode($json, true)['recurring'])->sort()->values()->all();
+        $this->assertSame(['SRC-1', 'SRC-2'], $sources);
+    }
+
     public function test_pnl_accepts_periods_after_june_2026(): void
     {
         $import = new SimawarPnLImport();
