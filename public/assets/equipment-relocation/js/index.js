@@ -40,6 +40,8 @@ document.addEventListener("DOMContentLoaded", async function () {
 
     const ALL = "All";
 
+    const DONOR_ACCEPTOR_OPTIONS = ["Donor", "Acceptor"];
+
     const PIC_OPTIONS = [
         "NOP BOGOR",
         "NOP BEKASI",
@@ -2932,8 +2934,13 @@ document.addEventListener("DOMContentLoaded", async function () {
         label,
         id,
         options,
-        value
+        value,
+        preserveCurrent = false
     ) {
+        const currentValue = String(value ?? "");
+        const fieldOptions = preserveCurrent && currentValue.trim() && !options.includes(currentValue)
+            ? [...options, currentValue]
+            : options;
 
         return `
             <div class="er-form-field">
@@ -2948,14 +2955,15 @@ document.addEventListener("DOMContentLoaded", async function () {
                         - Belum diisi -
                     </option>
 
-                    ${options
+                    ${fieldOptions
                         .map(
                             o => `
                                 <option
                                     value="${escapeHtml(o)}"
                                     ${
-                                        normalize(o) ===
-                                        normalize(value)
+                                        (preserveCurrent
+                                            ? o === currentValue
+                                            : normalize(o) === normalize(value))
                                             ? "selected"
                                             : ""
                                     }
@@ -3365,22 +3373,13 @@ document.addEventListener("DOMContentLoaded", async function () {
 
                     <div class="er-form-grid">
 
-                        <div class="er-form-field">
-
-                            <label for="erDonorAcceptor">
-                                Donor/Acceptor
-                            </label>
-
-                            <input
-                                type="text"
-                                id="erDonorAcceptor"
-                                value="${escapeHtml(
-                                    item.donor_acceptor || ""
-                                )}"
-                                placeholder="mis. Donor / Acceptor info"
-                            >
-
-                        </div>
+                        ${optionalSelectField(
+                            "Donor/Acceptor",
+                            "erDonorAcceptor",
+                            DONOR_ACCEPTOR_OPTIONS,
+                            item.donor_acceptor,
+                            true
+                        )}
 
 
                         <div class="er-form-field">
