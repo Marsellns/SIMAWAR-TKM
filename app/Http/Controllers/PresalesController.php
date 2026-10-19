@@ -18,7 +18,7 @@ class PresalesController extends Controller
     {
         $filters = $request->validate([
             'search' => ['nullable', 'string', 'max:255'],
-            'status' => ['nullable', 'in:Pending,In Progress,Completed,Rejected'],
+            'status' => ['nullable', 'in:waiting_approval,Pending,In Progress,Completed,Rejected'],
             'step' => ['nullable', 'integer', 'between:2,5'],
         ]);
         $search = trim($filters['search'] ?? '');
@@ -29,7 +29,11 @@ class PresalesController extends Controller
                     ->orWhere('document_number', 'like', '%'.$search.'%')
                     ->orWhere('file_name', 'like', '%'.$search.'%');
             }))
-            ->when(isset($filters['status']), fn ($query) => $query->where('status', $filters['status']))
+            ->when(($filters['status'] ?? null) === 'waiting_approval', fn ($query) => $query
+                ->whereIn('status', ['Pending', 'In Progress'])
+                ->whereBetween('current_step', [2, 5]))
+            ->when(isset($filters['status']) && $filters['status'] !== 'waiting_approval',
+                fn ($query) => $query->where('status', $filters['status']))
             ->when(isset($filters['step']), fn ($query) => $query->where('current_step', $filters['step']))
             ->latest('id')
             ->paginate(15)->withQueryString();
@@ -47,6 +51,7 @@ class PresalesController extends Controller
 
         $byStep = DocumentCirculation::query()
             ->whereIn('status', ['Pending', 'In Progress'])
+            ->whereBetween('current_step', [2, 5])
             ->selectRaw('current_step, count(*) as total')
             ->groupBy('current_step')
             ->pluck('total', 'current_step');

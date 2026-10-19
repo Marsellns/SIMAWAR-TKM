@@ -56,6 +56,51 @@ class PresalesWorkflowTest extends TestCase
         $this->actingAs($admin)->get(route('presales.file', $document))->assertOk();
     }
 
+    public function test_summary_and_stage_links_show_the_documents_behind_their_counts(): void
+    {
+        $admin = $this->userWithRole('admin');
+        foreach ([
+            ['Menunggu NOP', 'Pending', 2],
+            ['Menunggu SQ', 'In Progress', 3],
+            ['Ditolak NOP', 'Rejected', 2],
+            ['Selesai NBAE', 'Completed', 5],
+            ['Belum masuk tahap manager', 'Pending', 1],
+        ] as [$title, $status, $step]) {
+            DocumentCirculation::create([
+                'document_title' => $title,
+                'document_number' => 'PRE-'.$step.'-'.$status,
+                'file_name' => 'presales.pdf',
+                'file_path' => 'document-circulation/presales.pdf',
+                'status' => $status,
+                'current_step' => $step,
+                'uploaded_by' => $admin->id,
+                'uploaded_by_name' => $admin->name,
+            ]);
+        }
+
+        $overview = $this->actingAs($admin)->get(route('presales.index'))->assertOk();
+        $this->assertSame(5, $overview->viewData('stats')['total']);
+        $this->assertSame(2, $overview->viewData('stats')['waiting_approval']);
+        $this->assertSame(1, (int) $overview->viewData('byStep')[2]);
+        $this->assertSame(1, (int) $overview->viewData('byStep')[3]);
+        $overview->assertSee(route('presales.index', ['status' => 'waiting_approval']).'#presales-documents', false)
+            ->assertSee('data-presales-detail-url=', false);
+
+        $waiting = $this->get(route('presales.index', ['status' => 'waiting_approval']))->assertOk();
+        $this->assertSame(2, $waiting->viewData('documents')->total());
+        $waiting->assertSee('Menunggu NOP')->assertSee('Menunggu SQ')
+            ->assertDontSee('Ditolak NOP')->assertDontSee('Belum masuk tahap manager');
+
+        $nop = $this->get(route('presales.index', ['status' => 'waiting_approval', 'step' => 2]))->assertOk();
+        $this->assertSame(1, $nop->viewData('documents')->total());
+        $nop->assertSee('Menunggu NOP')->assertDontSee('Ditolak NOP')->assertDontSee('Menunggu SQ');
+
+        $this->assertSame(1, $this->get(route('presales.index', ['status' => 'Completed']))
+            ->assertOk()->viewData('documents')->total());
+        $this->assertSame(1, $this->get(route('presales.index', ['status' => 'Rejected']))
+            ->assertOk()->viewData('documents')->total());
+    }
+
     public function test_presales_rejection_requires_reason_and_correct_manager(): void
     {
         $admin = $this->userWithRole('admin');
