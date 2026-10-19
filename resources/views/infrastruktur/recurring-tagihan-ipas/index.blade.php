@@ -318,31 +318,38 @@ $(function () {
 
         const providers = topWithOther(data.providers, 7, 'tp');
         const contracts = topWithOther(data.contracts, 8, 'contract');
+        const years = yearPoints(data.years);
         charts.push(Highcharts.chart('tagihan-tp-chart', Highcharts.merge(chartTheme(), clickableSeries('Rincian TP'), {
             chart: { type: 'bar' },
+            colors: window.SimasterChartPalette.distinctColors(providers.length),
             xAxis: { type: 'category' },
             yAxis: { min: 0, allowDecimals: false },
             legend: { enabled: false },
+            plotOptions: { bar: { colorByPoint: true } },
             tooltip: { valueSuffix: ' rincian' },
             series: [{ name: 'Rincian', data: providers }],
         })));
         charts.push(Highcharts.chart('tagihan-contract-chart', Highcharts.merge(chartTheme(), clickableSeries('Jenis Kontrak'), {
             chart: { type: 'bar' },
+            colors: window.SimasterChartPalette.distinctColors(contracts.length),
             xAxis: { type: 'category' },
             yAxis: { labels: { formatter: function () { return compact.format(this.value); } } },
             legend: { enabled: false },
+            plotOptions: { bar: { colorByPoint: true } },
             tooltip: { valuePrefix: 'Rp ', valueDecimals: 2 },
             series: [{ name: 'Total Tagihan', data: contracts }],
         })));
         charts.push(Highcharts.chart('tagihan-year-chart', Highcharts.merge(chartTheme(), clickableSeries('Tahun Awal Termin'), {
             chart: { type: 'column' },
+            colors: window.SimasterChartPalette.distinctColors(years.length),
             xAxis: { type: 'category', labels: { rotation: 0, formatter: function () {
                 return this.value === 'Tanpa tanggal' ? 'Tgl kosong' : String(this.value).replace(/^Sebelum /, '<');
             } } },
             yAxis: { min: 0, allowDecimals: false },
             legend: { enabled: false },
+            plotOptions: { column: { colorByPoint: true } },
             tooltip: { valueSuffix: ' rincian' },
-            series: [{ name: 'Rincian', data: yearPoints(data.years) }],
+            series: [{ name: 'Rincian', data: years }],
         })));
     };
 
