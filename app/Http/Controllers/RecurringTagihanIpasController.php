@@ -55,12 +55,14 @@ class RecurringTagihanIpasController extends Controller
 
         $summary = (clone $terms)->selectRaw('COUNT(DISTINCT site_id) AS sites, COUNT(*) AS details, COALESCE(SUM(amount), 0) AS amount')->first();
         $sites = (int) $summary->sites;
-        $providers = (clone $terms)->selectRaw(self::TP_LABEL.' AS label, COUNT(*) AS total')
-            ->groupByRaw(self::TP_LABEL)->orderByDesc('total')->get();
-        $contracts = (clone $terms)->selectRaw(self::CONTRACT_LABEL.' AS label, COALESCE(SUM(amount), 0) AS total')
-            ->groupByRaw(self::CONTRACT_LABEL)->orderByDesc('total')->get();
-        $years = (clone $terms)->selectRaw(self::YEAR_LABEL.' AS label, COUNT(*) AS total')
-            ->groupByRaw(self::YEAR_LABEL)->orderBy('label')->get();
+        // MariaDB with ONLY_FULL_GROUP_BY requires grouping the projected label
+        // as a column, rather than repeating its expression in GROUP BY.
+        $providers = DB::query()->fromSub((clone $terms)->selectRaw(self::TP_LABEL.' AS label'), 'labeled_terms')
+            ->selectRaw('label, COUNT(*) AS total')->groupBy('label')->orderByDesc('total')->get();
+        $contracts = DB::query()->fromSub((clone $terms)->selectRaw(self::CONTRACT_LABEL.' AS label, amount'), 'labeled_terms')
+            ->selectRaw('label, COALESCE(SUM(amount), 0) AS total')->groupBy('label')->orderByDesc('total')->get();
+        $years = DB::query()->fromSub((clone $terms)->selectRaw(self::YEAR_LABEL.' AS label'), 'labeled_terms')
+            ->selectRaw('label, COUNT(*) AS total')->groupBy('label')->orderBy('label')->get();
 
         return response()->json([
             'metrics' => [
