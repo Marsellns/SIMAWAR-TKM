@@ -82,7 +82,7 @@
 </div></div>
 
 <div class="card" id="presales-documents">
-    <div class="card-header bg-transparent border-0 pt-3 pb-0"><h2 class="h6 mb-0">Daftar dokumen</h2></div>
+    <div class="card-header bg-transparent border-0 py-3"><h2 class="h6 mb-0 lh-base">Daftar dokumen</h2></div>
     <div class="card-body">
         <form class="row g-2 align-items-end mb-3" method="GET" action="{{ route('presales.index') }}" data-simaster-filter-panel="Filter Dokumen Presales">
             <div class="col-md-5"><label class="form-label small" for="presalesSearch">Cari dokumen</label><input class="form-control" id="presalesSearch" type="search" name="search" value="{{ $filters['search'] ?? '' }}" placeholder="Judul, nomor, atau nama file"></div>
@@ -92,7 +92,7 @@
         </form>
         <p class="small text-muted mb-2" role="status">Menampilkan {{ number_format($documents->total(), 0, ',', '.') }} dokumen sesuai pilihan.</p>
         <div class="table-responsive"><table class="table table-hover align-middle mb-0" id="presalesDocumentsTable">
-            <thead><tr><th>Dokumen</th><th>Nomor</th><th>Status</th><th>Tahap saat ini</th><th>Uploader</th><th>Upload (WIB)</th><th></th></tr></thead>
+            <thead><tr><th>Dokumen</th><th>Nomor</th><th>Status</th><th>Tahap saat ini</th><th>Uploader</th><th>Upload (WIB)</th></tr></thead>
             <tbody>
             @forelse ($documents as $document)
                 @php($badge = match($document->status) { 'Completed' => 'success', 'Rejected' => 'danger', 'In Progress' => 'primary', default => 'warning' })
@@ -103,10 +103,9 @@
                     <td>{{ in_array($document->status, ['Pending', 'In Progress'], true) ? $document->currentStepName() : '-' }}</td>
                     <td>{{ $document->uploaded_by_name ?: '-' }}</td>
                     <td>{{ \App\Models\DocumentCirculation::formatWib($document->created_at) }}</td>
-                    <td><a class="btn btn-outline-primary btn-sm" href="{{ route('presales.show', $document) }}">Detail</a></td>
                 </tr>
             @empty
-                <tr><td colspan="7" class="text-center text-muted py-5">{{ request()->hasAny(['search', 'status', 'step']) ? 'Tidak ada dokumen yang sesuai filter.' : 'Belum ada dokumen Presales yang diupload.' }}</td></tr>
+                <tr><td colspan="6" class="text-center text-muted py-5">{{ request()->hasAny(['search', 'status', 'step']) ? 'Tidak ada dokumen yang sesuai filter.' : 'Belum ada dokumen Presales yang diupload.' }}</td></tr>
             @endforelse
             </tbody>
         </table></div>
