@@ -17,7 +17,7 @@ DBeaver membaca server MySQL yang sama dengan `.env` aplikasi. Setelah migrasi, 
 
 Target beta yang dikonfirmasi adalah `beta.simawar.web.id`, dengan checkout `/home3/simawarw/beta.simawar.web.id`. Jangan mengganti database beta dengan snapshot lokal karena data server bisa berbeda. Migrasi mengolah data yang sudah berada di server.
 
-Selesaikan build GitHub Actions untuk commit yang dipilih. Jalankan perintah terminal berikut dengan checkout server yang bersih dan vendor yang sudah tersedia. Backup dibuat sebelum source diperbarui; deployment preflight dijalankan setelah migrasi khusus Tagihan IPAS:
+Selesaikan build GitHub Actions untuk commit yang dipilih. Jalankan perintah terminal berikut dengan checkout server yang bersih dan vendor yang sudah tersedia. Backup dibuat sebelum source diperbarui. `--prepare-only` memverifikasi dan menyiapkan paket rilis tanpa mengaktifkannya; jalankan migrasi dengan `artisan` dari paket tersebut agar kode dan autoload cocok. Pada rilis yang juga memuat migrasi view Electricity, jalankan kedua migrasi sebelum preflight deployment:
 
 ```bash
 set -e
@@ -26,12 +26,17 @@ PHP_BIN=/opt/alt/php83/usr/bin/php
 "$PHP_BIN" artisan down
 "$PHP_BIN" artisan simaster:backup
 git pull --ff-only origin main
-"$PHP_BIN" artisan migrate --path=database/migrations/2026_10_17_010000_normalize_recurring_tagihan_ipas_sites.php --force
+/bin/bash -euo pipefail -- scripts/cpanel-deploy-beta.sh --prepare-only
+RELEASE="$HOME/simawar-beta-deploy/releases/$(git rev-parse HEAD)"
+"$PHP_BIN" "$RELEASE/artisan" migrate:status
+"$PHP_BIN" "$RELEASE/artisan" migrate --path=database/migrations/2026_10_17_010000_normalize_recurring_tagihan_ipas_sites.php --force
+"$PHP_BIN" "$RELEASE/artisan" migrate --path=database/migrations/2026_10_17_020000_add_live_electricity_projections.php --force
+"$PHP_BIN" "$RELEASE/artisan" simaster:refresh-reports
 /bin/bash -euo pipefail -- scripts/cpanel-deploy-beta.sh
-"$PHP_BIN" artisan up
+"$PHP_BIN" "$RELEASE/artisan" up
 ```
 
-`set -e` menghentikan langkah berikutnya jika backup, pull, migrasi, atau deploy gagal. Jika berhenti setelah maintenance aktif, perbaiki kegagalan sebelum membuka aplikasi kembali. Verifikasi SQL di bawah dan halaman Tagihan IPAS setelah selesai. Jangan menjalankan impor snapshot hanya untuk menerapkan migrasi ini.
+Jalankan tiap baris berurutan. `set -e` menghentikan langkah berikutnya jika backup, pull, migrasi, atau deploy gagal. Periksa status dan rekonsiliasi SQL di bawah setelah migrasi IPAS, sebelum menjalankan migrasi berikutnya. Jika berhenti setelah maintenance aktif, perbaiki kegagalan sebelum membuka aplikasi kembali. Jangan menjalankan impor snapshot hanya untuk menerapkan migrasi ini.
 
 ## Rekonsiliasi
 

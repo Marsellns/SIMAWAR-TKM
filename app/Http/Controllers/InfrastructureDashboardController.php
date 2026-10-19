@@ -19,13 +19,18 @@ class InfrastructureDashboardController extends Controller
 {
     public function index(): View
     {
-        return view('infrastruktur.index');
+        $tahunList = SewaLahanRenewal::query()->whereNotNull('tahun_renewal')->distinct()->pluck('tahun_renewal')
+            ->merge(CombatSite::query()->whereNotNull('tahun_justi_dirnet')->distinct()->pluck('tahun_justi_dirnet'))
+            ->unique()->sortDesc()->values();
+
+        return view('infrastruktur.index', compact('tahunList'));
     }
 
     public function data(\Illuminate\Http\Request $request): JsonResponse
     {
-        $sewa = SewaLahanRenewal::query()->get();
-        $combat = CombatSite::query()->get();
+        $year = $this->selectedYear($request);
+        $sewa = SewaLahanRenewal::query()->when($year, fn ($query) => $query->where('tahun_renewal', $year))->get();
+        $combat = CombatSite::query()->when($year, fn ($query) => $query->where('tahun_justi_dirnet', $year))->get();
         $scope = $request->string('scope')->toString();
         $ownershipScope = $this->ownershipScope($request->input('ownership_scope'));
         $ownerRows = SiteOwner::query()->get();
@@ -309,8 +314,9 @@ class InfrastructureDashboardController extends Controller
      */
     public function details(Request $request): JsonResponse
     {
-        $sewa = SewaLahanRenewal::query()->get();
-        $combat = CombatSite::query()->get();
+        $year = $this->selectedYear($request);
+        $sewa = SewaLahanRenewal::query()->when($year, fn ($query) => $query->where('tahun_renewal', $year))->get();
+        $combat = CombatSite::query()->when($year, fn ($query) => $query->where('tahun_justi_dirnet', $year))->get();
         $scope = $request->string('scope')->toString();
         $records = collect();
 
@@ -437,6 +443,18 @@ class InfrastructureDashboardController extends Controller
             'source_counts' => $data->groupBy('source')->map->count()->all(),
             'data' => $data,
         ]);
+    }
+
+    private function selectedYear(Request $request): ?int
+    {
+        $value = $request->input('tahun');
+        if ($value === null || $value === '' || $value === 'all') {
+            return null;
+        }
+
+        abort_unless(is_scalar($value) && preg_match('/^(19|20|21)\d{2}$/', (string) $value), 422, 'Tahun tidak valid.');
+
+        return (int) $value;
     }
 
     /**

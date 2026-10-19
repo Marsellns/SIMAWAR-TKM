@@ -53,7 +53,7 @@ test('Total Site clears previous year and search filters before reloading the ta
     for (const module of ['sewa-lahan', 'combat']) {
         const source = read(`resources/views/infrastruktur/${module}/index.blade.php`);
         const start = source.indexOf("$(document).on('infrastructure-filter',");
-        const end = source.indexOf("$('#filter-tahun').on('change'", start);
+        const end = source.indexOf("$('#page-size').on('change'", start);
         const state = { year: '2025', search: 'SHARED', columnSearch: 'SHARED', reloads: 0 };
         const table = {
             search(value) { state.search = value; return table; },
@@ -61,7 +61,7 @@ test('Total Site clears previous year and search filters before reloading the ta
             ajax: { reload() { state.reloads++; assert.equal(state.year, 'all'); } },
         };
         const context = {
-            document: {}, window: {}, currentFilter: { field: 'tahun', value: '2025' },
+            document: {}, window: { location: { search: '' } }, URLSearchParams, currentFilter: { field: 'tahun', value: '2025' },
             exportBaseUrl: '/export', table, updateFilterBadge() {},
             $(target) {
                 if (target === context.document) return { on(name, handler) { state.handler = handler; } };
@@ -82,6 +82,29 @@ test('Total Site clears previous year and search filters before reloading the ta
         assert.equal(state.exportUrl, '/export?tahun=all');
         assert.equal(state.reloads, 1);
         assert.equal(context.currentFilter.field, 'all_records');
+    }
+});
+
+test('year filter is shared by infrastructure charts, detail requests and table drill-downs', () => {
+    const source = read('resources/views/infrastruktur/partials/analytics.blade.php');
+    const overview = read('resources/views/infrastruktur/index.blade.php');
+    for (const page of ['index', 'sewa-lahan/index', 'combat/index']) {
+        assert.match(read(`resources/views/infrastruktur/${page}.blade.php`), /infrastruktur\.partials\.scope-filter/);
+    }
+    assert.match(overview, /dashboard\.data'\)\), \{ tahun: year \}/);
+    assert.match(source, /dataParams\.tahun = selectedYear/);
+    assert.match(source, /params\.set\('tahun', selectedYear\)/);
+
+    const start = source.indexOf('function dashboardTarget(');
+    const end = source.indexOf('window.applyInfrastructureFilter =', start);
+    const context = { URLSearchParams, window: { location: { search: '?tahun=2026' } } };
+    vm.createContext(context);
+    vm.runInContext(source.slice(start, end).replace(/@json\(route\('([^']+)'\)\)/g, '"/$1"'), context);
+    for (const scope of ['sewa', 'combat']) {
+        const target = new URL(context.dashboardTarget(scope, 'summary_status', 'active', scope === 'sewa' ? 'TP' : ''), 'https://example.test');
+        assert.equal(target.searchParams.get('tahun'), '2026');
+        assert.equal(target.searchParams.get('ownership_scope'), scope === 'sewa' ? 'TP' : null);
+        assert.equal(target.searchParams.get('filter_value'), 'active');
     }
 });
 
@@ -160,7 +183,9 @@ test('main-module filters opt into the shared compact drawer', () => {
     ];
 
     for (const view of expectedViews) {
-        assert.match(read(view), /data-simaster-filter-panel="[^"]+"/, `${view} is not connected to the drawer`);
+        const content = read(view);
+        assert.ok(/data-simaster-filter-panel="[^"]+"/.test(content)
+            || /infrastruktur\.partials\.scope-filter/.test(content), `${view} is not connected to the drawer`);
     }
 
     const layout = read('resources/views/reports/scripts.blade.php');
