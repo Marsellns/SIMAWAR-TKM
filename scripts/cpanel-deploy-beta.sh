@@ -4,6 +4,10 @@ umask 077
 
 fail() { printf 'SIMAWAR beta deployment stopped: %s\n' "$*" >&2; exit 1; }
 
+[[ $# -le 1 ]] || fail 'usage: scripts/cpanel-deploy-beta.sh [--prepare-only]'
+mode="${1:-}"
+[[ -z "$mode" || "$mode" == '--prepare-only' ]] || fail 'usage: scripts/cpanel-deploy-beta.sh [--prepare-only]'
+
 domain=beta.simawar.web.id
 repo="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd -P)"
 expected="$(cd "$HOME" && pwd -P)/beta.simawar.web.id"
@@ -95,6 +99,10 @@ fi
     fail 'saved release uses different persistent configuration'
 "$php" "$repo/scripts/cpanel-deploy-check.php" release \
     "$release/RELEASE.json" "$sha" || fail 'saved release belongs to another commit'
+if [[ "$mode" == '--prepare-only' ]]; then
+    printf 'SIMAWAR beta prepared commit %s at %s\n' "$sha" "$release"
+    exit 0
+fi
 (
     cd "$release"
     "$php" deploy/cpanel/preflight.php "https://$domain"

@@ -106,6 +106,37 @@ class InfrastructureRebuildImportTest extends TestCase
         $this->assertSame(1, substr_count($html, 'id="infra-renewal-tab-chart"'));
     }
 
+    public function test_year_and_site_owner_filter_reaches_chart_and_existing_table_endpoints(): void
+    {
+        DB::table('sewa_lahan_renewals')->insert([
+            ['site_code' => 'TP-HISTORY', 'tahun_renewal' => 2025, 'source_details' => json_encode(['ownership' => 'TP', 'status' => 'On Air'])],
+            ['site_code' => 'TP-HISTORY', 'tahun_renewal' => 2026, 'source_details' => json_encode(['ownership' => 'TP', 'status' => 'Off Air'])],
+            ['site_code' => 'TEL-CURRENT', 'tahun_renewal' => 2026, 'source_details' => json_encode(['ownership' => 'Telkomsel', 'status' => 'On Air'])],
+        ]);
+        DB::table('combat_sites')->insert(['site_code' => 'COM-CURRENT', 'tahun_justi_dirnet' => 2026]);
+        $this->actingAs($this->userWithRole('viewer'));
+
+        $this->get(route('infrastruktur.index', ['tahun' => 2026]))
+            ->assertOk()->assertSee('id="infrastructure-scope-filter"', false);
+        $this->get(route('infrastruktur.sewa-lahan.index', ['tahun' => 2026, 'ownership_scope' => 'TP']))
+            ->assertOk()->assertSee('name="ownership_scope"', false);
+        $this->get(route('infrastruktur.combat.index', ['tahun' => 2026]))
+            ->assertOk()->assertSee('Tahun Justi Combat');
+
+        $filters = ['scope' => 'sewa', 'tahun' => 2026, 'ownership_scope' => 'TP'];
+        $this->getJson(route('infrastruktur.dashboard.data', $filters))
+            ->assertOk()->assertJsonPath('cards.total', 1)->assertJsonPath('cards.unique_sites', 1);
+        $this->getJson(route('infrastruktur.dashboard.details', $filters + ['filter_field' => 'all_records']))
+            ->assertOk()->assertJsonPath('count', 1)->assertJsonPath('data.0.site_code', 'TP-HISTORY');
+        $this->getJson(route('infrastruktur.sewa-lahan.data', [
+            'tahun' => 2026, 'ownership_scope' => 'TP', 'unique_sites' => 1,
+            'draw' => 1, 'start' => 0, 'length' => 10,
+        ]))->assertOk()->assertJsonPath('recordsFiltered', 1)->assertJsonPath('data.0.site_code', 'TP-HISTORY');
+        $this->getJson(route('infrastruktur.combat.data', [
+            'tahun' => 2026, 'unique_sites' => 1, 'draw' => 1, 'start' => 0, 'length' => 10,
+        ]))->assertOk()->assertJsonPath('recordsFiltered', 1);
+    }
+
     public function test_rebuild_uploads_merge_selected_contracts_and_refresh_portfolio_charts(): void
     {
         DB::table('sewa_lahan_renewals')->insert(['site_code' => 'OLD-SEWA']);

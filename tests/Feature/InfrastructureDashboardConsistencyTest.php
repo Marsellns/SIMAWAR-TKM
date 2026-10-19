@@ -255,4 +255,50 @@ class InfrastructureDashboardConsistencyTest extends TestCase
         $this->assertCount(1, $overview['alerts']['expired']);
         $this->assertSame('Sewa Lahan', $overview['alerts']['expired'][0]['source']);
     }
+
+    public function test_year_and_ownership_filters_use_the_same_rows_for_charts_cards_and_details(): void
+    {
+        SewaLahanRenewal::query()->create([
+            'site_code' => 'TP-SHARED', 'tahun_renewal' => 2025,
+            'source_details' => ['ownership' => 'TP', 'status' => 'On Air'],
+            'status_dokumen' => 'Negosiasi',
+        ]);
+        SewaLahanRenewal::query()->create([
+            'site_code' => 'TP-SHARED', 'tahun_renewal' => 2026,
+            'source_details' => ['ownership' => 'TP', 'status' => 'Off Air'],
+        ]);
+        SewaLahanRenewal::query()->create([
+            'site_code' => 'TEL-2026', 'tahun_renewal' => 2026,
+            'source_details' => ['ownership' => 'Telkomsel', 'status' => 'On Air'],
+        ]);
+        CombatSite::query()->create([
+            'site_code' => 'COMBAT-2026', 'tahun_justi_dirnet' => 2026,
+            'source_details' => ['database' => ['status' => 'On Air']],
+        ]);
+
+        $controller = app(InfrastructureDashboardController::class);
+        $request = ['scope' => 'sewa', 'tahun' => '2026', 'ownership_scope' => 'TP'];
+        $filtered = $controller->data(Request::create('/infrastruktur/dashboard-data', 'GET', $request))->getData(true);
+        $this->assertSame(1, $filtered['cards']['total']);
+        $this->assertSame(1, $filtered['cards']['unique_sites']);
+        $this->assertSame(1, $filtered['cards']['off_air']);
+        $this->assertSame([['name' => '2026', 'y' => 1, 'filter_field' => 'tahun', 'filter_value' => '2026']], $filtered['renewal_years']);
+        $this->assertSame(1, collect($filtered['owners'])->firstWhere('name', 'TP')['y']);
+        $this->assertSame(1, array_sum(array_column($filtered['status'], 'y')));
+
+        $details = $controller->details(Request::create('/infrastruktur/dashboard-details', 'GET', $request + ['filter_field' => 'all_records']))->getData(true);
+        $this->assertSame($filtered['cards']['total'], $details['count']);
+        $this->assertSame(['TP-SHARED'], array_column($details['data'], 'site_code'));
+        $this->assertSame([2026], array_column($details['data'], 'tahun'));
+
+        $overview = $controller->data(Request::create('/infrastruktur/dashboard-data', 'GET', ['tahun' => '2026']))->getData(true);
+        $this->assertSame(3, $overview['cards']['total']);
+        $this->assertSame(3, $overview['cards']['unique_sites']);
+        $this->assertSame(2, $overview['dataset_rows']['sewa_lahan']);
+        $this->assertSame(1, $overview['dataset_rows']['combat']);
+
+        $combat = $controller->data(Request::create('/infrastruktur/dashboard-data', 'GET', ['scope' => 'combat', 'tahun' => '2025']))->getData(true);
+        $this->assertSame(0, $combat['cards']['total']);
+        $this->assertSame([], $combat['renewal_years']);
+    }
 }

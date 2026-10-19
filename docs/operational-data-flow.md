@@ -57,13 +57,16 @@ PHP_BIN=/opt/alt/php83/usr/bin/php
 "$PHP_BIN" artisan down
 "$PHP_BIN" artisan simaster:backup
 git pull --ff-only origin main
-"$PHP_BIN" artisan migrate --force
-"$PHP_BIN" artisan simaster:refresh-reports
+/bin/bash -euo pipefail -- scripts/cpanel-deploy-beta.sh --prepare-only
+RELEASE="$HOME/simawar-beta-deploy/releases/$(git rev-parse HEAD)"
+"$PHP_BIN" "$RELEASE/artisan" migrate:status
+"$PHP_BIN" "$RELEASE/artisan" migrate --force
+"$PHP_BIN" "$RELEASE/artisan" simaster:refresh-reports
 /bin/bash -euo pipefail -- scripts/cpanel-deploy-beta.sh
-"$PHP_BIN" artisan up
+"$PHP_BIN" "$RELEASE/artisan" up
 ```
 
-Jalankan berurutan dan hentikan jika ada langkah gagal; aplikasi baru dibuka kembali setelah migrasi/deployment sukses. Periksa daftar migrasi tertunda terlebih dahulu dengan `artisan migrate:status`. Backup harus berhasil sebelum migrasi. Migrasi baru `2026_10_17_020000_add_live_electricity_projections` menambahkan satu penanda berindeks dan enam view; tidak menghapus tabel sumber. MySQL 8.x atau MariaDB 10.11 mendukung perhitungan window yang dipakai. Akun database memerlukan izin CREATE VIEW.
+Jalankan tiap baris berurutan dan hentikan jika ada langkah gagal; aplikasi baru dibuka kembali setelah migrasi/deployment sukses. Periksa dan tinjau daftar migrasi tertunda dari paket rilis sebelum menjalankan `migrate --force`. Backup harus berhasil sebelum migrasi. Migrasi baru `2026_10_17_020000_add_live_electricity_projections` menambahkan satu penanda berindeks dan enam view; tidak menghapus tabel sumber. Migrasi ini berhasil diterapkan pada MariaDB 10.6.28 di beta. Akun database memerlukan izin CREATE VIEW.
 
 Verifikasi login, tambah satu data uji manual, unggah template berisi satu site/periode baru, lalu cocokkan tabel, diagram, filter, dan ekspor. Edit/hapus data uji setelah selesai. Pastikan cron Laravel yang sudah ada tetap aktif untuk notifikasi terjadwal. Deployment kode/database tidak mengirim email pengujian.
 

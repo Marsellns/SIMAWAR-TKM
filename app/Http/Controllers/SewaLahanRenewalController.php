@@ -49,12 +49,14 @@ class SewaLahanRenewalController extends Controller
             && ! ($request->input('filter_field') === 'ownership' && $request->input('filter_value') === $ownershipScope);
 
         if ($request->boolean('unique_sites')) {
-            // Pick canonical Site IDs before applying a chart/year filter.
-            // Historical rows in another year must not appear in a year
-            // drill-down whose chart counted only the canonical row.
+            // Select the representative row within the requested year, so
+            // the filtered chart and its table drill-down count the same sites.
             $selection = SewaLahanRenewal::query();
             if ($validOwnershipScope) {
                 $this->applyOwnershipFilter($selection, $ownershipScope);
+            }
+            if ($request->filled('tahun') && $request->tahun !== 'all') {
+                $selection->where('tahun_renewal', (int) $request->tahun);
             }
             $ids = InfrastructureCanonicalSites::fromRows($selection->get())->pluck('id');
             $query->whereIn('sewa_lahan_renewals.id', $ids);

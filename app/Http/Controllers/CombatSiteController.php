@@ -44,7 +44,11 @@ class CombatSiteController extends Controller
         $query = CombatSite::query()->latest('id');
 
         if ($request->boolean('unique_sites')) {
-            $ids = InfrastructureCanonicalSites::fromRows(CombatSite::query()->get())->pluck('id');
+            $selection = CombatSite::query();
+            if ($request->filled('tahun') && $request->tahun !== 'all') {
+                $selection->where('tahun_justi_dirnet', (int) $request->tahun);
+            }
+            $ids = InfrastructureCanonicalSites::fromRows($selection->get())->pluck('id');
             $query->whereIn('combat_sites.id', $ids);
         }
 
