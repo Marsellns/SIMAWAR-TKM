@@ -36,7 +36,7 @@
 
     <section class="infra-analytics mb-4" aria-labelledby="tagihan-analytics-title">
         <h2 class="h5 mb-2" id="tagihan-analytics-title">Analitik Tagihan IPAS</h2>
-        <p class="small text-body-secondary mb-3">Kartu dan diagram dihitung dari rincian termin sesuai filter TP. Tabel di bawah tetap menampilkan total seluruh rincian untuk setiap site yang cocok.</p>
+        <p class="small text-body-secondary mb-3">Kartu dan diagram dihitung dari rincian termin sesuai filter TP. Klik kartu atau batang diagram untuk membuka data yang membentuk angkanya. Tabel site di bawah tetap menampilkan total seluruh rincian untuk setiap site yang cocok.</p>
         <div class="row g-3 mb-3">
             @foreach ([
                 ['key' => 'sites', 'label' => 'Total Site', 'class' => 'primary', 'icon' => 'site'],
@@ -45,7 +45,7 @@
                 ['key' => 'details_per_site', 'label' => 'Rata-rata Rincian / Site', 'class' => 'warning', 'icon' => 'average'],
             ] as $card)
                 <div class="col-xl-3 col-md-6 col-12">
-                    <div class="card h-100 border-{{ $card['class'] }} infra-summary-card">
+                    <button type="button" class="card h-100 w-100 border-{{ $card['class'] }} infra-summary-card text-start ipas-metric-card" data-ipas-card="{{ $card['key'] }}" aria-label="Lihat data {{ $card['label'] }}">
                         <div class="card-body py-2 infra-summary-card-body">
                             <div>
                                 <div class="infra-summary-label text-body-secondary">{{ $card['label'] }}</div>
@@ -67,20 +67,38 @@
                                 @endswitch
                             </span>
                         </div>
-                    </div>
+                    </button>
                 </div>
             @endforeach
         </div>
         <div class="alert alert-info py-2 mb-3" id="tagihan-analytics-status" role="status">Memuat ringkasan Tagihan IPAS…</div>
         <div class="row g-3 infra-detail-chart-grid d-none" id="tagihan-chart-grid">
-            <div class="col-xl-6 d-flex"><div class="card h-100 w-100 infra-detail-chart-card"><div class="card-header fw-semibold">Distribusi Rincian per TP</div><div class="card-body"><div id="tagihan-tp-chart" class="infra-detail-chart" style="height:320px"></div></div></div></div>
-            <div class="col-xl-6 d-flex"><div class="card h-100 w-100 infra-detail-chart-card"><div class="card-header fw-semibold">Nominal Tagihan per Jenis Kontrak</div><div class="card-body"><div id="tagihan-contract-chart" class="infra-detail-chart" style="height:320px"></div></div></div></div>
-            <div class="col-12 d-flex"><div class="card h-100 w-100 infra-detail-chart-card"><div class="card-header fw-semibold">Rincian menurut Tahun Awal Termin</div><div class="card-body"><div id="tagihan-year-chart" class="infra-detail-chart" style="height:320px"></div></div></div></div>
+            <div class="col-xl-6 d-flex"><div class="card h-100 w-100 infra-detail-chart-card"><div class="card-header fw-semibold">Distribusi Rincian per TP</div><div class="card-body"><div id="tagihan-tp-chart" class="infra-detail-chart" style="height:300px"></div></div></div></div>
+            <div class="col-xl-6 d-flex"><div class="card h-100 w-100 infra-detail-chart-card"><div class="card-header fw-semibold">Nominal Tagihan per Jenis Kontrak</div><div class="card-body"><div id="tagihan-contract-chart" class="infra-detail-chart" style="height:300px"></div></div></div></div>
+            <div class="col-12 d-flex"><div class="card h-100 w-100 infra-detail-chart-card"><div class="card-header fw-semibold">Tahun Awal Termin — 6 Tahun Terakhir</div><div class="card-body"><div id="tagihan-year-chart" class="infra-detail-chart" style="height:230px"></div></div></div></div>
         </div>
     </section>
 
-    <div class="card">
+    <section class="card mb-4 d-none" id="tagihan-drilldown" aria-labelledby="tagihan-drilldown-title">
+        <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
+            <h2 class="h6 mb-0" id="tagihan-drilldown-title">Rincian Tagihan IPAS</h2>
+            <button type="button" class="btn btn-sm btn-outline-secondary" id="tagihan-drilldown-close">Tutup rincian</button>
+        </div>
         <div class="card-body">
+            <p class="small text-body-secondary mb-3" id="tagihan-drilldown-description">Klik satu baris untuk melihat dokumen sumber site tersebut.</p>
+            <table id="tagihan-drilldown-table" class="display align-middle" style="width:100%">
+                <thead><tr>
+                    <th>No</th><th>Site ID</th><th>Site Name</th><th>TP</th><th>Contract Type</th>
+                    <th>Termin</th><th>Periode Ke</th><th>Awal Termin</th><th>Akhir Termin</th>
+                    <th>Nominal</th><th>Batch Name</th>
+                </tr></thead>
+            </table>
+        </div>
+    </section>
+
+    <div class="card" id="tagihan-site-section">
+        <div class="card-body">
+            <div class="alert alert-info py-2 d-none" id="tagihan-site-focus" role="status"></div>
             <p class="small text-muted mb-3">Satu baris per Site ID. Termin dan periode merangkum nomor yang tersedia; rentang tanggal mencakup seluruh kontrak. Total Tagihan adalah jumlah semua rincian, bukan nilai per termin. Klik site untuk melihat setiap siklus kontrak dan dokumen sumbernya.</p>
             <table id="tagihan-table" class="display align-middle" style="width:100%">
                 <thead><tr>
@@ -110,6 +128,14 @@
     </div>
     @include('infrastruktur.partials.manual-entry-modal', ['dataset' => 'recurring-tagihan-ipas'])
 @endsection
+
+@push('styles')
+<style>
+    .ipas-metric-card { cursor: pointer; background: var(--bs-body-bg); transition: box-shadow .15s ease, transform .15s ease; }
+    .ipas-metric-card:hover, .ipas-metric-card:focus-visible { box-shadow: 0 .25rem .75rem rgba(0, 0, 0, .12); transform: translateY(-1px); }
+    #tagihan-drilldown-table tbody tr { cursor: pointer; }
+</style>
+@endpush
 
 @push('scripts')
 <script src="https://code.highcharts.com/highcharts.js"></script>
@@ -150,6 +176,72 @@ $(function () {
     let analyticsRequest;
     let currentAnalytics;
     let charts = [];
+    let drilldownTable;
+    let drilldownFilter = { dimension: 'all' };
+    let drilldownSort = '';
+
+    const showSiteRows = (message) => {
+        $('#tagihan-drilldown').addClass('d-none');
+        $('#tagihan-site-focus').removeClass('d-none').text(message);
+        table.search('').order([]).ajax.reload();
+        document.getElementById('tagihan-site-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
+
+    const showTermRows = (filter, title, sort = '', description = 'Klik satu baris untuk melihat semua rincian dan dokumen sumber site tersebut.') => {
+        drilldownFilter = filter;
+        drilldownSort = sort;
+        $('#tagihan-site-focus').addClass('d-none');
+        $('#tagihan-drilldown-title').text(title);
+        $('#tagihan-drilldown-description').text(description);
+        $('#tagihan-drilldown').removeClass('d-none');
+        if (!drilldownTable) {
+            const textColumn = key => ({ data: key, name: key, render: DataTable.render.text(), defaultContent: '-' });
+            drilldownTable = new DataTable('#tagihan-drilldown-table', {
+                processing: true, serverSide: true, scrollX: true, order: [], pageLength: 10,
+                ajax: {
+                    url: @json(route('infrastruktur.recurring-tagihan-ipas.details')),
+                    data: d => {
+                        d.tp = $('#filter-tp').val();
+                        d.dimension = drilldownFilter.dimension;
+                        d.value = drilldownFilter.value || '';
+                        d.except = drilldownFilter.except || [];
+                        d.sort = drilldownSort;
+                    },
+                },
+                columns: [
+                    { data: 'DT_RowIndex', name: 'no', orderable: false, searchable: false },
+                    ...['site_code', 'site_name', 'tp', 'contract_type', 'termin', 'periode_ke'].map(textColumn),
+                    ...['termin_start', 'termin_end'].map(key => ({ data: key, name: key, render: (value, type) => type === 'display' ? date(value) : (value || '') })),
+                    { data: 'amount', name: 'amount', className: 'text-end', render: (value, type) => type === 'display' ? `Rp ${amount.format(Number(value) || 0)}` : value },
+                    textColumn('batch_name'),
+                ],
+                createdRow: row => { $(row).css('cursor', 'pointer').attr('title', 'Klik untuk melihat dokumen sumber site'); },
+            });
+        } else {
+            drilldownTable.search('').columns().search('').order([]);
+            drilldownTable.ajax.reload();
+        }
+        document.getElementById('tagihan-drilldown').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
+
+    $('[data-ipas-card]').on('click', function () {
+        switch (this.dataset.ipasCard) {
+            case 'sites':
+                showSiteRows('Menampilkan semua site yang sesuai dengan filter TP. Nominal pada tabel merupakan total seluruh rincian site. Klik baris untuk melihat rincian termin.');
+                break;
+            case 'details':
+                showTermRows({ dimension: 'all' }, 'Seluruh Rincian Termin');
+                break;
+            case 'amount':
+                showTermRows({ dimension: 'all' }, 'Rincian berdasarkan Nominal Tagihan', 'amount_desc');
+                break;
+            case 'details_per_site':
+                showTermRows({ dimension: 'all' }, 'Rincian untuk Rata-rata per Site', '',
+                    `${number.format(currentAnalytics?.metrics.details || 0)} rincian ÷ ${number.format(currentAnalytics?.metrics.sites || 0)} site = ${number.format(currentAnalytics?.metrics.details_per_site || 0)} rincian per site. Klik baris untuk melihat semua rincian site.`);
+                break;
+        }
+    });
+    $('#tagihan-drilldown-close').on('click', () => $('#tagihan-drilldown').addClass('d-none'));
 
     const chartTheme = () => {
         const dark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
@@ -168,16 +260,48 @@ $(function () {
         };
     };
 
-    const topWithOther = (rows, limit) => {
+    const topWithOther = (rows, limit, dimension) => {
         const points = rows.map(row => ({ name: row.label, y: Number(row.total) || 0 }))
             .sort((a, b) => b.y - a.y);
-        const shown = points.slice(0, limit);
-        if (points.length > limit) shown.push({ name: 'Lainnya', y: points.slice(limit).reduce((sum, point) => sum + point.y, 0) });
+        const shown = points.slice(0, limit).map(point => ({ ...point, custom: { dimension, value: point.name } }));
+        if (points.length > limit) shown.push({
+            name: 'Lainnya',
+            y: points.slice(limit).reduce((sum, point) => sum + point.y, 0),
+            custom: { dimension: `${dimension}_other`, except: shown.map(point => point.name) },
+        });
         return shown;
     };
 
+    const yearPoints = (rows) => {
+        const dated = rows.filter(row => /^\d{4}$/.test(row.label)).sort((a, b) => Number(a.label) - Number(b.label));
+        const recent = dated.slice(-6);
+        const older = dated.slice(0, -6);
+        const points = [];
+        if (older.length) points.push({
+            name: `Sebelum ${recent[0].label}`,
+            y: older.reduce((sum, row) => sum + Number(row.total || 0), 0),
+            custom: { dimension: 'before_year', value: recent[0].label },
+        });
+        recent.forEach(row => points.push({ name: row.label, y: Number(row.total) || 0, custom: { dimension: 'year', value: row.label } }));
+        const missing = rows.filter(row => !/^\d{4}$/.test(row.label));
+        if (missing.length) points.push({
+            name: 'Tanpa tanggal',
+            y: missing.reduce((sum, row) => sum + Number(row.total || 0), 0),
+            custom: { dimension: 'missing_year' },
+        });
+        return points;
+    };
+
+    const clickableSeries = prefix => ({
+        plotOptions: { series: {
+            cursor: 'pointer',
+            point: { events: { click: function () { showTermRows(this.options.custom, `${prefix}: ${this.name}`); } } },
+        } },
+    });
+
     const renderAnalytics = (data) => {
         currentAnalytics = data;
+        $('[data-ipas-card]').prop('disabled', false);
         $('[data-ipas-metric="sites"]').text(number.format(data.metrics.sites));
         $('[data-ipas-metric="details"]').text(number.format(data.metrics.details));
         $('[data-ipas-metric="details_per_site"]').text(number.format(data.metrics.details_per_site));
@@ -192,15 +316,17 @@ $(function () {
             .text(hasDetails ? 'Diagram belum dapat dimuat. Coba segarkan halaman.' : 'Belum ada rincian termin untuk filter TP ini.');
         if (!hasDetails || !window.Highcharts) return;
 
-        const providers = topWithOther(data.providers, 7);
-        const contracts = topWithOther(data.contracts, 8);
-        charts.push(Highcharts.chart('tagihan-tp-chart', Highcharts.merge(chartTheme(), {
-            chart: { type: 'pie' },
-            plotOptions: { pie: { showInLegend: true, dataLabels: { enabled: false } } },
+        const providers = topWithOther(data.providers, 7, 'tp');
+        const contracts = topWithOther(data.contracts, 8, 'contract');
+        charts.push(Highcharts.chart('tagihan-tp-chart', Highcharts.merge(chartTheme(), clickableSeries('Rincian TP'), {
+            chart: { type: 'bar' },
+            xAxis: { type: 'category' },
+            yAxis: { min: 0, allowDecimals: false },
+            legend: { enabled: false },
             tooltip: { valueSuffix: ' rincian' },
             series: [{ name: 'Rincian', data: providers }],
         })));
-        charts.push(Highcharts.chart('tagihan-contract-chart', Highcharts.merge(chartTheme(), {
+        charts.push(Highcharts.chart('tagihan-contract-chart', Highcharts.merge(chartTheme(), clickableSeries('Jenis Kontrak'), {
             chart: { type: 'bar' },
             xAxis: { type: 'category' },
             yAxis: { labels: { formatter: function () { return compact.format(this.value); } } },
@@ -208,18 +334,24 @@ $(function () {
             tooltip: { valuePrefix: 'Rp ', valueDecimals: 2 },
             series: [{ name: 'Total Tagihan', data: contracts }],
         })));
-        charts.push(Highcharts.chart('tagihan-year-chart', Highcharts.merge(chartTheme(), {
+        charts.push(Highcharts.chart('tagihan-year-chart', Highcharts.merge(chartTheme(), clickableSeries('Tahun Awal Termin'), {
             chart: { type: 'column' },
-            xAxis: { categories: data.years.map(row => row.label), labels: { rotation: -45 } },
+            xAxis: { type: 'category', labels: { rotation: 0, formatter: function () {
+                return this.value === 'Tanpa tanggal' ? 'Tgl kosong' : String(this.value).replace(/^Sebelum /, '<');
+            } } },
             yAxis: { min: 0, allowDecimals: false },
             legend: { enabled: false },
             tooltip: { valueSuffix: ' rincian' },
-            series: [{ name: 'Rincian', data: data.years.map(row => Number(row.total) || 0) }],
+            series: [{ name: 'Rincian', data: yearPoints(data.years) }],
         })));
     };
 
     const loadAnalytics = () => {
         if (analyticsRequest) analyticsRequest.abort();
+        currentAnalytics = null;
+        $('[data-ipas-card]').prop('disabled', true);
+        $('[data-ipas-metric]').text('—');
+        $('#tagihan-chart-grid').addClass('d-none');
         $('#tagihan-analytics-status').removeClass('d-none').removeClass('alert-danger').addClass('alert-info')
             .text('Memuat ringkasan Tagihan IPAS…');
         analyticsRequest = $.getJSON(@json(route('infrastruktur.recurring-tagihan-ipas.analytics')), { tp: $('#filter-tp').val() })
@@ -246,17 +378,16 @@ $(function () {
     };
 
     let detailRequest;
-    $('#tagihan-table tbody').on('click', 'tr', function () {
-        const row = table.row(this).data();
-        if (!row) return;
-
+    const openSiteDetail = row => {
         $('#tagihan-detail-title').text(row.site_code || 'Detail Tagihan IPAS');
-        $('#tagihan-detail-subtitle').text(`${row.site_name || ''} • ${row.term_count} rincian • ${date(row.termin_start)} s.d. ${date(row.termin_end)}`);
+        $('#tagihan-detail-subtitle').text(row.term_count == null
+            ? `${row.site_name || ''} • Semua rincian site ini`
+            : `${row.site_name || ''} • ${row.term_count} rincian • ${date(row.termin_start)} s.d. ${date(row.termin_end)}`);
         const container = $('#tagihan-detail-fields').empty();
         if (detailRequest) detailRequest.abort();
         container.append($('<div>').addClass('col-12 text-muted').text('Memuat rincian termin…'));
         bootstrap.Modal.getOrCreateInstance(document.getElementById('tagihan-detail-modal')).show();
-        const url = @json(route('infrastruktur.recurring-tagihan-ipas.show', ['site' => 0])).replace(/\/0$/, `/${row.id}`);
+        const url = @json(route('infrastruktur.recurring-tagihan-ipas.show', ['site' => 0])).replace(/\/0$/, `/${row.site_id || row.id}`);
         detailRequest = $.getJSON(url).done(({ data }) => {
             container.empty();
             data.forEach((term) => {
@@ -285,9 +416,21 @@ $(function () {
         }).fail((xhr, status) => {
             if (status !== 'abort') container.empty().append($('<div>').addClass('col-12 text-danger').text('Rincian gagal dimuat. Tutup dan buka kembali site untuk mencoba lagi.'));
         });
+    };
+    $('#tagihan-table tbody').on('click', 'tr', function () {
+        const row = table.row(this).data();
+        if (row) openSiteDetail(row);
+    });
+    $('#tagihan-drilldown-table tbody').on('click', 'tr', function () {
+        const row = drilldownTable?.row(this).data();
+        if (row) openSiteDetail(row);
     });
 
-    $('#filter-tp').on('change', () => { table.ajax.reload(); loadAnalytics(); });
+    $('#filter-tp').on('change', () => {
+        $('#tagihan-site-focus, #tagihan-drilldown').addClass('d-none');
+        table.search('').order([]).ajax.reload();
+        loadAnalytics();
+    });
     $('#page-size').on('change', function () { table.page.len(parseInt($(this).val())).draw(); });
 });
 </script>
