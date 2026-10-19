@@ -52,7 +52,7 @@
     @php($charts = [
         ['id' => 'status', 'title' => 'Komposisi Status Site', 'type' => 'pie', 'key' => 'status'],
         ['id' => 'owner', 'title' => 'Site Owner', 'type' => 'pie', 'key' => 'owners'],
-        ['id' => 'renewal', 'title' => 'Distribusi Tahun Renewal / Justi', 'type' => 'column', 'key' => 'renewal_years'],
+        ['id' => 'renewal', 'title' => $scope === 'combat' ? 'Distribusi Tahun Justi Combat' : 'Distribusi Tahun Renewal Sewa Lahan', 'type' => 'column', 'key' => 'renewal_years'],
         ['id' => 'pks-status', 'title' => 'PKS Status', 'type' => 'pie', 'key' => 'pks_status'],
         ['id' => 'nop', 'title' => 'NOP Site', 'type' => 'pie', 'key' => 'nop'],
         ['id' => 'vendor', 'title' => 'Site Owner', 'type' => 'column', 'key' => 'vendor'],
@@ -634,6 +634,8 @@ window.openInfrastructureDrilldown = function (scope, filterField, filterValue, 
     modal.show();
 
     const params = new URLSearchParams({ scope: scope || 'all' });
+    const selectedYear = new URLSearchParams(window.location.search).get('tahun');
+    if (selectedYear && selectedYear !== 'all') params.set('tahun', selectedYear);
     // Retain value-less requests for callers that explicitly need raw records.
     if (filterField && (filterField === 'all_records' || (filterValue !== undefined && filterValue !== null && filterValue !== ''))) {
         params.set('filter_field', filterField);
@@ -740,10 +742,12 @@ function dashboardTarget(scope, filterField, filterValue, ownershipScope = '') {
     const sewaUrl = @json(route('infrastruktur.sewa-lahan.index'));
     const combatUrl = @json(route('infrastruktur.combat.index'));
     let target = scope === 'combat' ? combatUrl : sewaUrl;
+    const selectedYear = typeof window === 'undefined' ? '' : (new URLSearchParams(window.location.search).get('tahun') || '');
 
     // Total Site opens every source row and stays visible after a reload.
     if (filterField === 'all_records') {
         const params = new URLSearchParams({ filter_field: 'all_records' });
+        if (selectedYear && selectedYear !== 'all') params.set('tahun', selectedYear);
         if (scope === 'sewa' && (ownershipScope === 'Telkomsel' || ownershipScope === 'TP')) {
             params.set('ownership_scope', ownershipScope);
         }
@@ -751,7 +755,13 @@ function dashboardTarget(scope, filterField, filterValue, ownershipScope = '') {
     }
 
     if (filterField === 'tahun') {
-        const params = new URLSearchParams({ tahun: filterValue, unique_sites: '1' });
+        const params = new URLSearchParams({ unique_sites: '1' });
+        if (/^(19|20|21)\d{2}$/.test(String(filterValue))) {
+            params.set('tahun', filterValue);
+        } else {
+            params.set('filter_field', 'tahun');
+            params.set('filter_value', filterValue);
+        }
         if (scope === 'sewa' && (ownershipScope === 'Telkomsel' || ownershipScope === 'TP')) {
             params.set('ownership_scope', ownershipScope);
         }
@@ -769,6 +779,7 @@ function dashboardTarget(scope, filterField, filterValue, ownershipScope = '') {
     }
 
     const params = new URLSearchParams();
+    if (selectedYear && selectedYear !== 'all') params.set('tahun', selectedYear);
     if (filterField && filterValue) {
         params.set('filter_field', filterField);
         params.set('filter_value', filterValue);
@@ -791,6 +802,10 @@ window.applyInfrastructureFilter = function (scope, filterField, filterValue, ow
                         (scope === 'combat' && window.location.pathname.includes('combat'));
 
     if (hasTable && isSameScope) {
+        if (filterField === 'tahun') {
+            window.location.href = target + '#infrastructure-data';
+            return;
+        }
         const url = new URL(window.location.href);
         const targetUrl = new URL(target, window.location.origin);
         url.search = targetUrl.search;
@@ -845,6 +860,8 @@ $(function () {
         });
         const ownershipScope = root.data('ownership-scope') || '';
         const dataParams = { scope };
+        const selectedYear = new URLSearchParams(window.location.search).get('tahun');
+        if (selectedYear && selectedYear !== 'all') dataParams.tahun = selectedYear;
         if (ownershipScope === 'Telkomsel' || ownershipScope === 'TP') {
             dataParams.ownership_scope = ownershipScope;
         }
@@ -950,7 +967,7 @@ $(function () {
             root.find('.infra-priority-count').text(new Intl.NumberFormat('id-ID').format(data.priority_count || 0));
 
             // Setelah semua chart selesai digambar di DOM, jika ada filter aktif atau hash, pastikan posisi scroll tepat di tabel
-            if (window.location.hash === '#infrastructure-data' || new URLSearchParams(window.location.search).has('filter_field') || new URLSearchParams(window.location.search).has('tahun')) {
+            if (window.location.hash === '#infrastructure-data' || new URLSearchParams(window.location.search).has('filter_field')) {
                 setTimeout(function () {
                     window.scrollToInfrastructureTable();
                 }, 200);
@@ -1049,7 +1066,7 @@ $(function () {
         root.find('.infra-alert-details').addClass('d-none').removeData('alert-key');
         root.find('.infra-alert-toggle').attr('aria-expanded', 'false');
     });
-    if (window.location.hash === '#infrastructure-data' || new URLSearchParams(window.location.search).has('filter_field') || new URLSearchParams(window.location.search).has('tahun')) {
+    if (window.location.hash === '#infrastructure-data' || new URLSearchParams(window.location.search).has('filter_field')) {
         setTimeout(function () {
             window.scrollToInfrastructureTable();
         }, 150);

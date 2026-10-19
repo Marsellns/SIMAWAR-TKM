@@ -22,6 +22,7 @@
     <h1 class="h4 mb-1">Infrastruktur Performance</h1>
     <p class="text-body-secondary small mb-0">Ringkasan Sewa Lahan dan Combat berdasarkan data yang tersimpan di database.</p>
 </div>
+@include('infrastruktur.partials.scope-filter', ['scope' => 'all'])
 
 <div class="enterprise-tabs-nav infra-tabs-nav mb-3" id="infra-tabs" role="tablist" aria-label="Bagian Infrastruktur Management">
     <button type="button" class="enterprise-tab-btn active" id="infra-tab-overview" role="tab" aria-selected="true" aria-controls="infra-panel-overview" data-infra-tab="overview">Ringkasan</button>
@@ -76,7 +77,7 @@
 <div class="row g-3 infra-overview-chart-grid">
     <div class="col-lg-6 d-flex"><div class="card h-100 w-100 infra-overview-chart-card"><div class="card-header fw-semibold">Komposisi Status Site</div><div class="card-body"><div id="infra-status-chart" class="infra-overview-chart"></div></div></div></div>
     <div class="col-lg-6 d-flex"><div class="card h-100 w-100 infra-overview-chart-card"><div class="card-header fw-semibold">Site Owner (TP / Telkomsel)</div><div class="card-body"><div id="infra-owner-chart" class="infra-overview-chart"></div></div></div></div>
-    <div class="col-12"><div class="card infra-overview-chart-card"><div class="card-header fw-semibold">Distribusi Tahun Renewal / Justi</div><div class="card-body"><div id="infra-renewal-chart" class="infra-overview-chart"></div></div></div></div>
+    <div class="col-12"><div class="card infra-overview-chart-card"><div class="card-header fw-semibold">Distribusi Tahun Renewal Sewa Lahan</div><div class="card-body"><div id="infra-renewal-chart" class="infra-overview-chart"></div></div></div></div>
 </div>
 </div>
 @include('infrastruktur.partials.analytics', ['scope' => 'all'])
@@ -126,8 +127,7 @@ $(function () {
         });
     });
     if (window.location.hash === '#infrastructure-data'
-        || new URLSearchParams(window.location.search).has('filter_field')
-        || new URLSearchParams(window.location.search).has('tahun')) {
+        || new URLSearchParams(window.location.search).has('filter_field')) {
         activateInfrastructureTab('risk');
     }
 
@@ -137,7 +137,8 @@ $(function () {
         window.openInfrastructureDrilldown('all', $(this).data('filter-field'), $(this).data('filter-value'), $(this).find('.infra-summary-label').first().text());
     });
 
-    $.getJSON(@json(route('infrastruktur.dashboard.data')), function (data) {
+    const year = new URLSearchParams(window.location.search).get('tahun') || 'all';
+    $.getJSON(@json(route('infrastruktur.dashboard.data')), { tahun: year }, function (data) {
         Object.entries(data.cards).forEach(([key, value]) => {
             const el = $('#infra-' + key);
             if (el.length) el.text(key === 'risk_value' ? 'Rp ' + new Intl.NumberFormat('id-ID').format(value) : new Intl.NumberFormat('id-ID').format(value));

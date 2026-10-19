@@ -7,11 +7,12 @@
         <h1 class="h4 mb-0">Infrastruktur Management — Sewa Lahan</h1>
         @include('infrastruktur.partials.entry-actions', ['dataset' => 'sewa-lahan'])
     </div>
+    @include('infrastruktur.partials.scope-filter', ['scope' => 'sewa'])
 
     @include('infrastruktur.partials.analytics', ['scope' => 'sewa'])
 
     {{-- Container Data Tabel Infrastruktur --}}
-    <div id="infrastructure-data" class="infrastructure-table-section mt-4 {{ request()->filled('filter_field') || request()->filled('tahun') || request()->boolean('unique_sites') ? '' : 'd-none' }}">
+    <div id="infrastructure-data" class="infrastructure-table-section mt-4 {{ request()->filled('filter_field') || request()->filled('ownership_scope') || (request()->filled('tahun') && request('tahun') !== 'all') || request()->boolean('unique_sites') ? '' : 'd-none' }}">
         {{-- Banner Filter Aktif dari Diagram / Kartu --}}
         <div id="active-filter-alert" class="alert alert-info py-2 px-3 d-flex align-items-center justify-content-between mb-3 d-none">
             <div class="d-flex align-items-center gap-2">
@@ -24,17 +25,8 @@
         </div>
 
         {{-- Toolbar --}}
-        <div class="card mb-3" data-simaster-filter-panel="Filter Sewa Lahan">
+        <div class="card mb-3">
             <div class="card-body py-2 d-flex flex-wrap align-items-center gap-3">
-                <div class="d-flex align-items-center gap-2">
-                    <label for="filter-tahun" class="form-label mb-0 small fw-semibold text-nowrap">Tahun Renewal:</label>
-                    <select id="filter-tahun" class="form-select form-select-sm" style="width:auto">
-                        <option value="all">All Year</option>
-                        @foreach ($tahunList as $t)
-                            <option value="{{ $t }}">{{ $t }}</option>
-                        @endforeach
-                    </select>
-                </div>
                 <div class="d-flex align-items-center gap-2">
                     <label for="page-size" class="form-label mb-0 small fw-semibold text-nowrap">Show:</label>
                     <select id="page-size" class="form-select form-select-sm" style="width:auto">
@@ -221,8 +213,9 @@ $(function () {
         currentFilter.value = (data && data.filterValue) || '';
 
         if (currentFilter.field === 'all_records') {
-            $('#filter-tahun').val('all');
-            $('#btn-export').attr('href', exportBaseUrl + '?tahun=all');
+            const selectedYear = new URLSearchParams(window.location.search).get('tahun') || 'all';
+            $('#filter-tahun').val(selectedYear);
+            $('#btn-export').attr('href', exportBaseUrl + '?tahun=' + selectedYear);
             table.search('').columns().search('');
         }
 
@@ -241,10 +234,6 @@ $(function () {
         }
     });
 
-    $('#filter-tahun').on('change', function () {
-        table.ajax.reload();
-        $('#btn-export').attr('href', exportBaseUrl + '?tahun=' + $(this).val());
-    });
     $('#page-size').on('change', function () { table.page.len(parseInt($(this).val())).draw(); });
 
     function esc(v) { return $('<div>').text(v == null || v === '' ? '-' : String(v)).html(); }
