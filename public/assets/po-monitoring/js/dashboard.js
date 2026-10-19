@@ -106,7 +106,7 @@ $(function () {
                 chart: { type: definition.type, backgroundColor: 'transparent', height: 330, style: { fontFamily: 'inherit' } },
                 title: { text: null }, credits: { enabled: false },
                 accessibility: { description: definition.title },
-                colors: window.SimasterChartPalette.series,
+                colors: pie ? window.SimasterChartPalette.series : window.SimasterChartPalette.distinctColors(definition.data.length),
                 xAxis: { type: 'category', labels: { style: { color: text } }, lineColor: dark ? '#334155' : '#e2e8f0' },
                 yAxis: { min: 0, allowDecimals: false, title: { text: definition.unit, style: { color: text } }, labels: { style: { color: text } }, gridLineColor: dark ? '#334155' : '#e2e8f0' },
                 legend: { enabled: pie, itemStyle: { color: text }, events: { itemClick(event) { openPoint(event.legendItem); return false; } } },

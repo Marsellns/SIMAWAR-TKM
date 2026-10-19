@@ -573,6 +573,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         upsertChart('nop', 'chart-electricity-nop', {
             chart: { type: 'bar' },
+            colors: window.SimasterChartPalette.distinctColors(rows.length),
             xAxis: { categories: rows.map((item) => item.name) },
             yAxis: { min: 0, allowDecimals: false, title: { text: 'Jumlah site' } },
             tooltip: { formatter() {
@@ -580,7 +581,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 return `<b>${escapeHtml(row.name)}</b><br>${numberFormatter.format(row.sites)} site<br>${compactPower(row.capacity_va)}`;
             } },
             legend: { enabled: false },
-            plotOptions: { bar: { borderWidth: 0, borderRadius: 4, colorByPoint: true, colors: ['#1d4ed8', '#2563eb', '#3b82f6', '#0ea5e9', '#06b6d4', '#14b8a6', '#10b981', '#22c55e'] } },
+            plotOptions: { bar: { borderWidth: 0, borderRadius: 4, colorByPoint: true } },
             series: [{ name: 'Site', data: rows.map((item) => item.sites) }],
         });
     }

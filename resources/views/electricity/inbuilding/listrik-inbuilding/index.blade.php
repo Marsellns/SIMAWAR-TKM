@@ -572,7 +572,7 @@ $(function () {
                     dataLabels: { position: 'top' }
                 }
             },
-            colors: labels.map((_, index) => palette.series[index % palette.series.length]),
+            colors: palette.distinctColors(labels.length),
             dataLabels: {
                 enabled: false
             },

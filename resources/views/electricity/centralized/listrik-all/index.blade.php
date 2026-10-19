@@ -251,7 +251,7 @@ $(function () {
 
         miniChart = Highcharts.chart('modal-listrik-chart', {
             chart: { type: 'column', backgroundColor: 'transparent' },
-            colors: palette.series,
+            colors: palette.distinctColors(chartData.length),
             title: { text: null },
             credits: { enabled: false },
             xAxis: {

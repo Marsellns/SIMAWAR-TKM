@@ -41,7 +41,7 @@ function load() {
         { title: 'Status GR', type: 'bar', dataset: 'varcost', unit: 'PO', data: [{ name: 'Belum diisi', y: 1 }] },
         { title: 'Presales', type: 'pie', dataset: 'presales', unit: 'Dokumen', data: [{ name: 'Pending', y: 2 }] },
     ];
-    const window = { SimasterPoMonitoring: { datasets, charts: definitions, detailsUrl: '/po-monitoring/details' }, SimasterChartPalette: { series: ['blue'] }, addEventListener() {} };
+    const window = { SimasterPoMonitoring: { datasets, charts: definitions, detailsUrl: '/po-monitoring/details' }, SimasterChartPalette: { series: ['blue'], distinctColors: count => Array.from({ length: count }, (_, index) => `color-${index}`) }, addEventListener() {} };
     let pendingSearch;
     vm.runInNewContext(source, {
         window, DataTable,

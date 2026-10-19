@@ -155,7 +155,7 @@ $(function () {
     function initChart(labels, values) {
         const ctx = document.getElementById('tagihanChart').getContext('2d');
 
-        const barColors = labels.map((_, index) => palette.series[index % palette.series.length]);
+        const barColors = palette.distinctColors(labels.length);
 
         if (chartInstance) {
             chartInstance.destroy();

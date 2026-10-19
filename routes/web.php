@@ -193,6 +193,8 @@ Route::middleware('auth')->group(function () {
 
         // -- Recurring (Tagihan Ipas) --
         Route::get('recurring-tagihan-ipas', [RecurringTagihanIpasController::class, 'index'])->name('recurring-tagihan-ipas.index');
+        Route::get('recurring-tagihan-ipas/analytics', [RecurringTagihanIpasController::class, 'analytics'])->name('recurring-tagihan-ipas.analytics');
+        Route::get('recurring-tagihan-ipas/details', [RecurringTagihanIpasController::class, 'details'])->name('recurring-tagihan-ipas.details');
         Route::get('recurring-tagihan-ipas/data', [RecurringTagihanIpasController::class, 'data'])->name('recurring-tagihan-ipas.data');
         Route::get('recurring-tagihan-ipas/{site}', [RecurringTagihanIpasController::class, 'show'])->whereNumber('site')->name('recurring-tagihan-ipas.show');
 

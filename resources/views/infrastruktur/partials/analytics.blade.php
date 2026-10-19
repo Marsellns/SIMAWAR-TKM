@@ -921,6 +921,7 @@ $(function () {
                         : window.infrastructureSiteCountLabelOptions(type);
                 Highcharts.chart(container, Highcharts.merge(base, {
                     chart: { type, className: `infra-analytics-chart${isAging ? '' : ' infra-site-count-chart'}` },
+                    ...(type === 'pie' ? {} : { colors: window.SimasterChartPalette.distinctColors(source.length) }),
                     xAxis: { type: 'category' },
                     yAxis: { title: { text: isAging ? 'Hari' : 'Site unik' } },
                     plotOptions: {
