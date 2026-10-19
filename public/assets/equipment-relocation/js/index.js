@@ -11,7 +11,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     const chartTextColor = () => document.documentElement.getAttribute("data-bs-theme") === "dark" ? "#d4dde8" : "#475569";
     const chartGridColor = () => document.documentElement.getAttribute("data-bs-theme") === "dark" ? "#425062" : "#e2e8f0";
     const chartPalette = window.SimasterChartPalette;
-    const chartColor = index => chartPalette.series[index % chartPalette.series.length];
+    const chartColor = index => chartPalette.colorForIndex(index);
 
     if (!chartAvailable) {
         console.warn(

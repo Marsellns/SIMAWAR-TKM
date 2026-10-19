@@ -242,6 +242,7 @@ $(function () {
             const points = data[key];
             draw(`feasibility-${key}-chart`, points.some(point => point.y > 0), {
                 chart: { type: 'bar', height: Math.max(340, points.length * 33 + 65) },
+                colors: window.SimasterChartPalette.distinctColors(points.length),
                 legend: { enabled: false }, xAxis: { type: 'category' },
                 yAxis: { title: { text: key === 'tower' ? 'Jumlah aset' : 'Jumlah site' } },
                 tooltip: { formatter() { return `${escape(this.key)}: <b>${number(this.y)}</b> ${unit}`; } },

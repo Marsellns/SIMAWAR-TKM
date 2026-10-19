@@ -165,6 +165,7 @@ $(function () {
         }, window.infrastructurePieLabelOptions(data.owners.length))));
         const renewalChartOptions = () => themed(Highcharts.merge({
             chart: { type: 'column', className: 'infra-analytics-chart infra-site-count-chart' },
+            colors: window.SimasterChartPalette.distinctColors(data.renewal_years.length),
             xAxis: { type: 'category' },
             yAxis: { title: { text: 'Site unik' } },
             plotOptions: {

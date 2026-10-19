@@ -802,6 +802,7 @@ $(function () {
 
         upsertChart('siteOwners', 'chart-site-owner', {
             chart: { type: 'bar' },
+            colors: palette.distinctColors(values.length),
             exporting: { enabled: false },
             xAxis: {
                 categories: categories,
@@ -960,6 +961,7 @@ $(function () {
         const costs = data.costs || [];
         const siteCounts = data.site_counts || [];
         const year = data.year || selectedPeriod?.tahun || '';
+        const barColors = palette.distinctColors(costs.length);
 
         $('#electricity-all-caption').text(
             `Nilai flagging pembayaran dari ${Number(data.site_count || 0).toLocaleString('id-ID')} site — ${year}. Inquiry tidak dihitung sebagai pembayaran.`
@@ -999,7 +1001,7 @@ $(function () {
                 name: 'Total Biaya Listrik',
                 data: costs.map((value, index) => ({
                     y: Number(value) || 0,
-                    color: palette.series[index % palette.series.length]
+                    color: barColors[index]
                 }))
             }]
         });
@@ -1201,11 +1203,12 @@ $(function () {
         const periods = plnData.periods || [];
 
         const maxVal = Math.max(...values, 0);
+        const barColors = palette.distinctColors(values.length);
         const dataWithPeak = values.map((v, index) => ({
             y: v,
-            color: (v === maxVal && maxVal > 0)
-                ? corpColors.primaryDark
-                : palette.series[index % palette.series.length]
+            color: barColors[index],
+            borderColor: (v === maxVal && maxVal > 0) ? corpColors.primaryDark : undefined,
+            borderWidth: (v === maxVal && maxVal > 0) ? 2 : 0
         }));
 
         upsertChart('peakUsage', 'chart-peak-usage', {

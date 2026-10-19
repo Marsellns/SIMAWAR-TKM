@@ -698,7 +698,22 @@
                 '#D977A8', // rose
                 '#06B6D4', // cyan
                 '#6366F1', // indigo
+                '#16A34A', // green
+                '#DC2626', // red
+                '#A855F7', // purple
+                '#DB2777', // pink
+                '#65A30D', // lime
+                '#1E40AF', // navy
+                '#A16207', // ochre
+                '#475569', // slate
             ]),
+            colorForIndex(index) {
+                return this.series[index]
+                    || `hsl(${Math.round((index * 137.508) % 360)}, 68%, ${index % 2 ? 45 : 38}%)`;
+            },
+            distinctColors(count) {
+                return Array.from({ length: count }, (_, index) => this.colorForIndex(index));
+            },
             financial: Object.freeze({
                 revenue: '#3B82F6',
                 cost: '#F97316',
