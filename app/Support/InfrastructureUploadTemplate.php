@@ -28,7 +28,7 @@ final class InfrastructureUploadTemplate
             ],
             'recurring-tagihan-ipas' => [
                 'Site ID', 'Site Name', 'TP', 'Contract Type', 'Termin', 'Periode Ke',
-                'Termin Start', 'Termin End', 'Amount', 'Batch Name',
+                'Termin Start', 'Termin End', 'Amount', 'Batch Name', 'Recurring',
             ],
             'jaknet' => [
                 'Site ID', 'Site Name', 'No PKS', 'Tanggal Mulai', 'Tanggal Berakhir',

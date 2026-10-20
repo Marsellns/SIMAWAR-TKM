@@ -12,7 +12,7 @@ test('Tagihan IPAS analytics browser script remains valid after Blade routes are
     new vm.Script(rendered);
 });
 
-test('chart buckets preserve totals and carry matching drilldown filters', () => {
+test('chart buckets preserve totals and carry matching site-table filters', () => {
     const source = fs.readFileSync(path.join(__dirname, '..', 'resources/views/infrastruktur/recurring-tagihan-ipas/index.blade.php'), 'utf8');
     const helpers = source.match(/    const topWithOther = [\s\S]*?(?=    const clickableSeries =)/)?.[0];
     assert.ok(helpers);

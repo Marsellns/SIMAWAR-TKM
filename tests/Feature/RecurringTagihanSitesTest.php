@@ -86,7 +86,8 @@ class RecurringTagihanSitesTest extends TestCase
         $this->actingAs(User::factory()->create(['account_status' => 'approved']));
 
         $this->get(route('infrastruktur.recurring-tagihan-ipas.index'))
-            ->assertOk()->assertSee('tagihan-tp-chart')->assertSee('tagihan-contract-chart')->assertSee('tagihan-year-chart');
+            ->assertOk()->assertSee('tagihan-tp-chart')->assertSee('tagihan-contract-chart')->assertSee('tagihan-year-chart')
+            ->assertSee('id="tagihan-table"', false)->assertDontSee('id="tagihan-drilldown-table"', false);
 
         $all = $this->getJson(route('infrastruktur.recurring-tagihan-ipas.analytics'))->assertOk();
         $all->assertJsonPath('metrics.sites', 2)
@@ -145,6 +146,36 @@ class RecurringTagihanSitesTest extends TestCase
             ->assertOk()->assertJsonPath('data.0.site_code', 'BKS648');
         $this->getJson($route(['dimension' => 'year', 'value' => 'invalid']))->assertStatus(422);
         $this->getJson($route(['dimension' => 'unknown']))->assertStatus(422);
+    }
+
+    public function test_chart_choices_filter_the_existing_site_table_without_changing_stored_site_totals(): void
+    {
+        app(RecurringTagihanWriter::class)->store([
+            $this->record(1, ['amount' => '100.25']),
+            $this->record(2, ['tp' => 'OTHER', 'contract_type' => 'MLA', 'amount' => '200.50']),
+            $this->record(1, ['site_code' => 'JKP846', 'contract_type' => 'MLA', 'amount' => '50.75']),
+        ]);
+        $this->actingAs(User::factory()->create(['account_status' => 'approved']));
+        $route = fn (array $query) => route('infrastruktur.recurring-tagihan-ipas.data', $query + ['draw' => 1, 'length' => 10]);
+
+        $this->getJson($route(['dimension' => 'tp', 'value' => 'OTHER']))
+            ->assertOk()->assertJsonPath('recordsFiltered', 1)
+            ->assertJsonPath('data.0.site_code', 'BKS648')
+            ->assertJsonPath('data.0.term_count', 2)
+            ->assertJsonPath('data.0.amount', '300.75');
+        $this->getJson($route(['tp' => 'DHOST', 'dimension' => 'contract', 'value' => 'MLA']))
+            ->assertOk()->assertJsonPath('recordsFiltered', 1)->assertJsonPath('data.0.site_code', 'JKP846');
+        $this->getJson($route(['dimension' => 'contract_other', 'except' => ['NON-MLA']]))
+            ->assertOk()->assertJsonPath('recordsFiltered', 2);
+        $this->getJson($route(['dimension' => 'year', 'value' => '2015']))
+            ->assertOk()->assertJsonPath('recordsFiltered', 1)->assertJsonPath('data.0.site_code', 'BKS648');
+        $this->getJson($route(['dimension' => 'before_year', 'value' => '2015']))
+            ->assertOk()->assertJsonPath('recordsFiltered', 2);
+        $this->getJson($route(['dimension' => 'missing_year']))
+            ->assertOk()->assertJsonPath('recordsFiltered', 0);
+        $this->getJson($route(['dimension' => 'all', 'sort' => 'amount_desc']))
+            ->assertOk()->assertJsonPath('data.0.site_code', 'BKS648');
+        $this->getJson($route(['dimension' => 'invalid']))->assertStatus(422);
     }
 
     public function test_excel_summary_has_one_site_per_row_and_a_single_date_range(): void
