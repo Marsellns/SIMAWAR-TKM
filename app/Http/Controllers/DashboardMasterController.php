@@ -43,20 +43,11 @@ class DashboardMasterController extends Controller
         $siteCount = Site::count();
         $poCount = PoHq::count();
         $listrikCount = ListrikPln::count();
-        $totalDayaVa = (int) ListrikPln::sum('daya_va');
 
         // Match Total Site in the workbook: include every active source row.
         $infraTotal = SewaLahanRenewal::count() + CombatSite::count();
 
-        // 2. Electricity Tagihan Total
-        $totalTagihanPln = (float) PaymentPln::sum('harga');
-
-        // 3. Module Health & Counts
-        $anomaliPlnCount = AnomaliTagihanPln::count();
-        $anomaliIbcCount = AnomaliTagihanInbuilding::count();
-        $anomaliPnlCount = SiteMonthlyMetric::where('is_anomaly', 1)->count();
-        $totalAnomalies = $anomaliPlnCount + $anomaliIbcCount + $anomaliPnlCount;
-
+        // 2. Module Health & Counts
         $moduleDataCounts = [
             'pnl' => SiteMonthlyMetric::count(),
             'electricity' => $listrikCount + ListrikInbuilding::count(),
@@ -75,10 +66,7 @@ class DashboardMasterController extends Controller
             'siteCount',
             'poCount',
             'listrikCount',
-            'totalDayaVa',
             'infraTotal',
-            'totalTagihanPln',
-            'totalAnomalies',
             'moduleDataComposition'
         ));
     }
