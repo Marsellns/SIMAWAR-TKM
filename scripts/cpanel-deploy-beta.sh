@@ -170,6 +170,8 @@ mv -Tf -- "$next" "$deploy_root/current"
     cd "$repo"
     "$php" artisan optimize:clear
     "$php" artisan filament:optimize-clear
+    "$php" artisan optimize
+    "$php" artisan filament:optimize
 )
 [[ -z "$(git -C "$repo" status --porcelain --untracked-files=no)" ]] || fail 'deployment changed tracked Git files'
 printf 'SIMAWAR beta activated commit %s\n' "$sha"
