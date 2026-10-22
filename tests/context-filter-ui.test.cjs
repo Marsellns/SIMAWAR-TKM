@@ -8,6 +8,20 @@ const postcss = require('postcss');
 const source = fs.readFileSync(path.join(__dirname, '../resources/views/reports/scripts.blade.php'), 'utf8');
 const css = fs.readFileSync(path.join(__dirname, '../public/css/simaster.css'), 'utf8');
 
+test('filter trigger uses an existing hero action area when one is designated', () => {
+    const start = source.indexOf('const placeInHeader = function');
+    const code = source.slice(start, source.indexOf('const moveExportActions = function', start));
+    const actions = { children: [], appendChild(control) { this.children.push(control); } };
+    const context = {
+        reportRoot: { querySelector: () => actions },
+        document: { querySelector: () => { throw new Error('unexpected fallback launcher'); } },
+    };
+    vm.runInNewContext(code + '\nthis.placeInHeader = placeInHeader;', context);
+    const trigger = { textContent: 'Filter' };
+    assert.equal(context.placeInHeader(trigger), actions);
+    assert.deepEqual(actions.children, [trigger]);
+});
+
 test('native forms and period pickers keep a single action area', () => {
     const start = source.indexOf('overlay.innerHTML =');
     const template = source.slice(start, source.indexOf('const popupBody =', start));
