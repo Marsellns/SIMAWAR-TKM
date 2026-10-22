@@ -78,6 +78,7 @@ class SewaLahanRenewalController extends Controller
                 'aksi',
                 fn (SewaLahanRenewal $s) => view('infrastruktur.sewa-lahan.partials.aksi', ['sewaLahan' => $s])->render()
             );
+            $dataTable->addColumn('edit_url', fn (SewaLahanRenewal $s) => route('infrastruktur.sewa-lahan.edit', $s));
         }
 
         return $dataTable
@@ -293,21 +294,29 @@ class SewaLahanRenewalController extends Controller
     /**
      * Form edit Sewa Lahan renewal.
      */
-    public function edit(SewaLahanRenewal $sewaLahan): View
+    public function edit(Request $request, SewaLahanRenewal $sewaLahan): View
     {
+        if ($request->boolean('modal')) {
+            return view('infrastruktur.sewa-lahan.partials.edit-modal', compact('sewaLahan'));
+        }
+
         return view('infrastruktur.sewa-lahan.edit', compact('sewaLahan'));
     }
 
     /**
      * Simpan perubahan Sewa Lahan renewal.
      */
-    public function update(UpdateSewaLahanRenewalRequest $request, SewaLahanRenewal $sewaLahan): RedirectResponse
+    public function update(UpdateSewaLahanRenewalRequest $request, SewaLahanRenewal $sewaLahan): JsonResponse|RedirectResponse
     {
         $data = $request->validated();
         $data['update_by']  = auth()->user()->name;
         $data['tgl_update'] = now();
 
         $sewaLahan->update($data);
+
+        if ($request->expectsJson()) {
+            return response()->json(['message' => "Sewa Lahan site {$sewaLahan->site_code} berhasil diperbarui."]);
+        }
 
         return redirect()
             ->route('infrastruktur.sewa-lahan.index')
@@ -353,3 +362,4 @@ class SewaLahanRenewalController extends Controller
         return $pdf->stream('SIP_' . $sewaLahan->site_code . '.pdf');
     }
 }
+

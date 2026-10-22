@@ -44,10 +44,15 @@ class InfrastructureRebuildImportTest extends TestCase
         $this->assertSame('Sewa Site', $sewa['site_name']);
         $this->assertSame(2026, $sewa['tahun_renewal']);
         $this->assertSame('2026-01-01', $sewa['start_date_baru']);
+        $this->assertSame(925000000.0, $sewa['penawaran_1']);
         $this->assertNull($data['sewa-lahan'][1]['end_date_baru']);
         $details = json_decode($sewa['source_details'], true);
         $this->assertSame('Telkomsel', $details['tp']);
         $this->assertSame('Telkomsel', $details['ownership']);
+        $this->assertSame('2026-07-12', $details['tanggal_penawaran_1']);
+        $this->assertSame('2026-07-01', $details['proses_negosiasi_at']);
+        $this->assertSame('2026-07-15', $details['proses_pks_owner_at']);
+        $this->assertSame(107.45, $details['longtitude']);
         $this->assertSame('DATA SEWA LAHAN', $details['_source']['sheet']);
         $this->assertSame(2, $details['_source']['row']);
         $this->assertSame([2025, 2026], array_column($data['combat'], 'tahun_justi_dirnet'));
@@ -202,14 +207,35 @@ class InfrastructureRebuildImportTest extends TestCase
         $this->assertDatabaseMissing('sewa_lahan_renewals', ['site_code' => 'EXCLUDED']);
     }
 
+    public function test_sewa_detail_edit_uses_existing_admin_permissions_and_update_validation(): void
+    {
+        $id = DB::table('sewa_lahan_renewals')->insertGetId(['site_code' => 'EDIT-SEWA']);
+        $url = route('infrastruktur.sewa-lahan.edit', $id);
+
+        $this->actingAs($this->userWithRole('viewer'));
+        $this->get($url.'?modal=1')->assertForbidden();
+        $this->getJson(route('infrastruktur.sewa-lahan.data', ['draw' => 1, 'start' => 0, 'length' => 10]))
+            ->assertOk()->assertJsonMissingPath('data.0.edit_url');
+
+        $this->actingAs($this->userWithRole('admin'));
+        $this->get($url.'?modal=1')->assertOk()->assertSee('data-sewa-edit-form', false);
+        $this->getJson(route('infrastruktur.sewa-lahan.data', ['draw' => 1, 'start' => 0, 'length' => 10]))
+            ->assertOk()->assertJsonPath('data.0.edit_url', $url);
+        $this->putJson(route('infrastruktur.sewa-lahan.update', $id), ['site_code' => 'EDIT-SEWA', 'status_perpanjangan' => 'PKS'])
+            ->assertOk()->assertJsonPath('message', 'Sewa Lahan site EDIT-SEWA berhasil diperbarui.');
+        $this->assertDatabaseHas('sewa_lahan_renewals', ['id' => $id, 'status_perpanjangan' => 'PKS']);
+        $this->putJson(route('infrastruktur.sewa-lahan.update', $id), ['site_code' => 'EDIT-SEWA', 'harga_baru' => -1])
+            ->assertUnprocessable()->assertJsonValidationErrors('harga_baru');
+    }
+
     private function workbook(bool $emptyCombat = false, bool $includeTp = false, bool $missingSewa = false): string
     {
         $book = new Spreadsheet();
         $book->getActiveSheet()->setTitle('BACKUP')->fromArray([['Site ID'], ['EXCLUDED']]);
         $book->createSheet()->setTitle('DATABASE RENEWAL')->fromArray([['Site ID'], ['MASTER-EXCLUDED']]);
         $sewa = [
-            ['Site ID', 'Sitename', 'Tahun', 'Periode Awal (Baru)', 'Periode Akhir (Baru)', 'tp', 'tp'],
-            ['sewa01', 'Sewa Site', 2026, '2026-01-01', '2026-12-31', 'Telkomsel', null],
+            ['Site ID', 'Sitename', 'Tahun', 'Periode Awal (Baru)', 'Periode Akhir (Baru)', 'tp', 'tp', 'Penawaran 1', 'Tanggal Penawaran 1', 'Tgl Negosiasi', 'Tgl PKS/BAK ke Owner', 'Longtitude', 'latitude'],
+            ['sewa01', 'Sewa Site', 2026, '2026-01-01', '2026-12-31', 'Telkomsel', null, 925000000, '2026-07-12', '2026-07-01', '2026-07-15', 107.45, -6.49],
             ['sewa01', 'Sewa Site', 2027, '2027-01-01', '00:00:00', 'Telkomsel', null],
         ];
         if ($includeTp) {
@@ -233,3 +259,4 @@ class InfrastructureRebuildImportTest extends TestCase
         return $path;
     }
 }
+
