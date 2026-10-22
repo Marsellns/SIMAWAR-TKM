@@ -565,7 +565,7 @@
 
                 <!-- NOP -->
                 <div class="global-filter-group">
-                    <label class="global-filter-label">NOP</label>
+                    <label class="global-filter-label" for="erFilterNop">NOP</label>
                     <select id="erFilterNop" class="global-filter-select">
                         <option value="All">Semua NOP</option>
                     </select>
@@ -573,7 +573,7 @@
 
                 <!-- EQUIPMENT GROUP -->
                 <div class="global-filter-group">
-                    <label class="global-filter-label">Kategori Equipment</label>
+                    <label class="global-filter-label" for="erFilterGroup">Kategori Equipment</label>
                     <select id="erFilterGroup" class="global-filter-select">
                         <option value="All">Semua Kategori</option>
                         <option value="RU">RU (Radio Unit)</option>
@@ -583,7 +583,7 @@
 
                 <!-- EQUIPMENT TYPE -->
                 <div class="global-filter-group">
-                    <label class="global-filter-label">Tipe Equipment</label>
+                    <label class="global-filter-label" for="erFilterType">Tipe Equipment</label>
                     <select id="erFilterType" class="global-filter-select">
                         <option value="All">Semua Tipe</option>
                     </select>
@@ -593,7 +593,7 @@
                 <!-- Fixed, normalized 2-value vocabulary (SAFE / NOT SAFE),
                      not populated from raw source text - see equipment-relocation.js -->
                 <div class="global-filter-group">
-                    <label class="global-filter-label">Safe to Reloc</label>
+                    <label class="global-filter-label" for="erFilterSafe">Safe to Reloc</label>
                     <select id="erFilterSafe" class="global-filter-select">
                         <option value="All">Semua Eligibility</option>
                         <option value="SAFE">SAFE</option>
@@ -603,7 +603,7 @@
 
                 <!-- STATUS (RELOCATION PROGRESS) -->
                 <div class="global-filter-group">
-                    <label class="global-filter-label">Status Progress</label>
+                    <label class="global-filter-label" for="erFilterStatus">Status Progress</label>
                     <select id="erFilterStatus" class="global-filter-select">
                         <option value="All">Semua Status</option>
                         <option value="Belum Diisi">Belum Diisi</option>
@@ -615,7 +615,7 @@
 
                 <!-- PIC -->
                 <div class="global-filter-group">
-                    <label class="global-filter-label">PIC</label>
+                    <label class="global-filter-label" for="erFilterPic">PIC</label>
                     <select id="erFilterPic" class="global-filter-select">
                         <option value="All">Semua PIC</option>
                         <option value="NOP BOGOR">NOP BOGOR</option>
@@ -666,7 +666,7 @@
         };
         window.__equipmentRelocationCanEdit = @json($canEditRelocation);
     </script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js"></script>
+    <script src="{{ asset('assets/vendor/chart.js/4.4.6/chart.umd.min.js') }}"></script>
     <script src="{{ asset('assets/equipment-relocation/js/data.js') }}"></script>
     <script src="{{ asset('assets/equipment-relocation/js/index.js') }}"></script>
     <script>
