@@ -33,6 +33,23 @@ class SewaLahanRenewalImport extends BaseDatasetImport
 
     public function mapSourceRow(array $source): ?array
     {
+        // Nilai tahapan disimpan di kolom utama, sedangkan tanggal opsional
+        // tetap di source_details agar workbook lama tidak perlu migrasi DB.
+        foreach (range(1, 3) as $number) {
+            foreach (['penawaran', 'nego'] as $stage) {
+                $key = "tanggal_{$stage}_{$number}";
+                $aliases = $stage === 'nego'
+                    ? [$key, "tgl_nego_{$number}", "tanggal_negosiasi_{$number}", "tgl_negosiasi_{$number}"]
+                    : [$key, "tgl_penawaran_{$number}"];
+                $date = null;
+                foreach ($aliases as $alias) {
+                    $date = $this->parseDate($source[$alias] ?? null);
+                    if ($date !== null) break;
+                }
+                if ($date !== null) $source[$key] = $date;
+                else unset($source[$key]);
+            }
+        }
         $row = new Collection($source);
         $siteCode = $this->cleanText($row['site_id'] ?? null);
 
@@ -74,3 +91,4 @@ class SewaLahanRenewalImport extends BaseDatasetImport
         ];
     }
 }
+
