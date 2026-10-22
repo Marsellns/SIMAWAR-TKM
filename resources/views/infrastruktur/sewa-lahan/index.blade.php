@@ -144,7 +144,6 @@
     .sewa-detail-field dd { margin: .2rem 0 0; font-size: .84rem; font-weight: 650; overflow-wrap: anywhere; }
     .sewa-detail-wide { grid-column: 1 / -1; }
     .sewa-detail-map { min-height: 180px; border-radius: 10px; background: linear-gradient(135deg, #e8f1f7, #e3f5ed); display: grid; place-items: center; text-align: center; padding: 1rem; overflow: hidden; }
-    .sewa-detail-map iframe { width: 100%; height: 220px; border: 0; }
     .sewa-detail-map-mark { color: #e11d48; font-size: 2rem; line-height: 1; }
     .sewa-detail-map-actions { margin-top: .5rem; display: flex; flex-wrap: wrap; gap: .5rem; justify-content: center; }
     .sewa-detail-timeline { display: grid; grid-template-columns: repeat(var(--sewa-step-count, 6), minmax(0, 1fr)); gap: .4rem; margin-top: .7rem; }
@@ -409,6 +408,19 @@ $(function () {
             && (lat !== 0 || lon !== 0) ? { lat, lon } : null;
     }
 
+    function mapsDirectionsUrl(point, address, city) {
+        const street = String(address ?? '').trim();
+        const destination = point
+            ? `${point.lat},${point.lon}`
+            : !street || /^[-–—]+$/.test(street) ? '' : [street, city, 'Indonesia'].filter(Boolean).join(', ');
+        if (!destination) return '';
+        const url = new URL('https://www.google.com/maps/dir/');
+        url.searchParams.set('api', '1');
+        url.searchParams.set('destination', destination);
+        return url.toString();
+    }
+
+
     function renderSourceDetails(d) {
         const details = d.source_details || {};
         const rows = Object.entries(details)
@@ -450,7 +462,7 @@ $(function () {
         const desa = detailValue(d, 'desa');
         const location = [kecamatan, kabupaten].filter(Boolean).join(', ') || region || 'Lokasi belum tersedia';
         const point = coordinates(d);
-        const mapUrl = point ? `https://www.openstreetmap.org/?mlat=${point.lat}&mlon=${point.lon}#map=16/${point.lat}/${point.lon}` : '';
+        const mapUrl = mapsDirectionsUrl(point, address, kabupaten);
         const offerStages = [
             ['Penawaran 1', 'penawaran_1'], ['Nego 1', 'nego_1'],
             ['Penawaran 2', 'penawaran_2'], ['Nego 2', 'nego_2'],
@@ -524,14 +536,13 @@ $(function () {
             </div>
             <div class="sewa-detail-column">
                 <section class="sewa-detail-card"><div class="sewa-detail-card-head"><h3>${sewaIcon('pin', 'green')} Lokasi Site</h3></div>
-                    <div class="sewa-detail-map" data-sewa-map>${point ? `<div><div class="sewa-detail-map-mark" aria-hidden="true">●</div><strong>Koordinat tersedia</strong><div class="sewa-detail-muted">Peta dimuat saat diminta</div><div class="sewa-detail-map-actions"><button type="button" class="btn btn-sm btn-outline-primary" data-sewa-load-map data-lat="${point.lat}" data-lon="${point.lon}">Tampilkan peta</button></div></div>` : '<span class="sewa-detail-muted">Koordinat site belum tersedia</span>'}</div>
+                    <div class="sewa-detail-map"><div><div class="sewa-detail-map-mark" aria-hidden="true">${sewaIcon('pin', 'green')}</div><strong>${mapUrl ? 'Lokasi site siap dibuka' : 'Lokasi site belum tersedia'}</strong><div class="sewa-detail-muted">${mapUrl ? point ? `Koordinat: ${point.lat}, ${point.lon}` : `Berdasarkan alamat: ${esc(address)}` : 'Alamat dan koordinat site belum tercatat'}</div>${mapUrl ? `<div class="sewa-detail-map-actions"><a class="btn btn-sm btn-outline-primary" href="${esc(mapUrl)}" target="_blank" rel="noopener noreferrer">Rute dari posisi saya ↗</a></div><div class="sewa-detail-muted mt-2">Google Maps menggunakan lokasi perangkat sebagai titik awal jika tersedia.</div>` : ''}</div></div>
                     <dl class="sewa-detail-fields mt-3">
                         ${detailField('Alamat Lengkap', address, true)}${detailField('Region', region)}
                         ${detailField('Kabupaten / Kota', kabupaten)}${detailField('Kecamatan', kecamatan)}
                         ${detailField('Desa / Kelurahan', desa)}
                         ${detailField('Koordinat', point ? `${point.lat}, ${point.lon}` : null, true)}
                     </dl>
-                    ${point ? `<a class="btn btn-sm btn-outline-primary mt-2" href="${mapUrl}" target="_blank" rel="noopener noreferrer">Lihat di Maps ↗</a>` : ''}
                 </section>
                 <section class="sewa-detail-card"><div class="sewa-detail-card-head"><h3>${sewaIcon('contract', 'violet')} PKS Existing</h3></div><dl class="sewa-detail-fields">
                     ${detailField('Nomor PKS Existing', d.no_pks_lama, true)}
@@ -625,20 +636,6 @@ $(function () {
         } finally {
             submit.disabled = false;
         }
-    });
-
-    $('#detail-body').on('click', '[data-sewa-load-map]', function () {
-        const lat = Number(this.dataset.lat);
-        const lon = Number(this.dataset.lon);
-        if (!Number.isFinite(lat) || !Number.isFinite(lon)) return;
-        const delta = 0.008;
-        const bbox = [lon - delta, lat - delta, lon + delta, lat + delta].join(',');
-        const iframe = document.createElement('iframe');
-        iframe.title = 'Peta lokasi site';
-        iframe.loading = 'lazy';
-        iframe.referrerPolicy = 'no-referrer';
-        iframe.src = `https://www.openstreetmap.org/export/embed.html?bbox=${encodeURIComponent(bbox)}&layer=mapnik&marker=${lat}%2C${lon}`;
-        $(this).closest('[data-sewa-map]').empty().append(iframe);
     });
 
     $('#sewa-table tbody').on('click', '.aksi-cell button, .aksi-cell a', function (e) { e.stopPropagation(); });
