@@ -24,7 +24,7 @@
 @section('content')
     <header class="page-hero d-flex align-items-center gap-3 mb-4">
         <img src="{{ asset('assets/modules/'.$image.'.svg') }}" alt="" width="64" height="64">
-        <div><h1 class="h4 mb-1">{{ $title }}</h1><p class="text-body-secondary mb-0">{{ $description }}</p></div>
+        <div><h1 class="h4 mb-0">{{ $title }}</h1></div>
     </header>
 
     <div class="row g-3 mb-4">

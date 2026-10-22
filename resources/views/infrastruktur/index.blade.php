@@ -19,8 +19,7 @@
 
 @section('content')
 <div class="page-hero mb-3">
-    <h1 class="h4 mb-1">Infrastruktur Performance</h1>
-    <p class="text-body-secondary small mb-0">Ringkasan Sewa Lahan dan Combat berdasarkan data yang tersimpan di database.</p>
+    <h1 class="h4 mb-0">Infrastruktur Performance</h1>
 </div>
 @include('infrastruktur.partials.scope-filter', ['scope' => 'all'])
 

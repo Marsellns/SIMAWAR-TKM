@@ -26,6 +26,5 @@
         @endif
         <button type="submit" class="btn btn-sm btn-primary">Terapkan Filter</button>
         <a href="{{ $scope === 'all' ? route('infrastruktur.index') : ($scope === 'sewa' ? route('infrastruktur.sewa-lahan.index') : route('infrastruktur.combat.index')) }}" class="btn btn-sm btn-outline-secondary">Reset</a>
-        <span class="small text-body-secondary align-self-center">Grafik, ringkasan, dan tabel mengikuti pilihan ini.</span>
     </form>
 </div>

@@ -44,8 +44,7 @@
 #equipmentRelocationPage .header-actions form { margin: 0; }
 #equipmentRelocationPage .page-eyebrow,
 #equipmentRelocationPage .section-eyebrow { display: block; margin: 0 0 6px; font-size: 11px; font-weight: 800; letter-spacing: .1em; color: var(--primary); }
-#equipmentRelocationPage .page-header h1 { margin: 0 0 6px; font-size: clamp(1.55rem, 2.2vw, 2.1rem); font-weight: 750; }
-#equipmentRelocationPage .page-description { max-width: 760px; margin: 0; color: var(--text-muted); }
+#equipmentRelocationPage .page-header h1 { margin: 0; font-size: clamp(1.55rem, 2.2vw, 2.1rem); font-weight: 750; }
 #equipmentRelocationPage .btn-primary,
 #equipmentRelocationPage .btn-secondary,
 .er-modal-overlay .btn-primary,

@@ -35,10 +35,6 @@
 
             <h1>Equipment Relocation</h1>
 
-            <p class="page-description">
-                Monitoring seluruh equipment (RU &amp; BBP), status eligibility (Safe/Not Safe
-                to Reloc), serta progress relokasinya antar site.
-            </p>
         </div>
 
         <div class="header-actions">

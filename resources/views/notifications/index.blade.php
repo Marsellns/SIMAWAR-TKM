@@ -5,8 +5,7 @@
 @section('content')
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h1 class="h4 mb-1">Notifikasi</h1>
-            <p class="text-muted mb-0">Peringatan dan informasi terbaru untuk akun Anda.</p>
+            <h1 class="h4 mb-0">Notifikasi</h1>
         </div>
         @if ($notifications->total() > 0)
             <form method="POST" action="{{ route('notifications.read-all') }}">
