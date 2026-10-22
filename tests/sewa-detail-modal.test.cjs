@@ -42,7 +42,7 @@ test('address-only site still offers directions, while missing location does not
         source_details: { address: 'Jl. Raya Gandul 22', kabupaten: 'KOTA DEPOK' },
     });
     assert.match(addressOnly, /Rute dari posisi saya/);
-    assert.match(addressOnly, /destination=Jl\\.\\+Raya\\+Gandul\\+22%2C\\+KOTA\\+DEPOK%2C\\+Indonesia/);
+    assert.match(addressOnly, /destination=Jl\.\+Raya\+Gandul\+22%2C\+KOTA\+DEPOK%2C\+Indonesia/);
 
     const missing = context.renderDetail({ site_code: 'NO-LOCATION', source_details: {} });
     assert.doesNotMatch(missing, /Rute dari posisi saya/);
