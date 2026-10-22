@@ -19,10 +19,7 @@
 
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-3 page-hero">
         <div>
-            <h1 class="h4 mb-1">Profit & Loss (P & L) Data</h1>
-            <p class="text-body-secondary mb-0 small">
-                Daftar data finansial dan status performa site per periode (Revenue, Cost, dan Profit/Loss).
-            </p>
+            <h1 class="h4 mb-0">Profit & Loss (P & L) Data</h1>
         </div>
         <div class="d-flex flex-wrap gap-2">
             @include('operations.actions', ['dataset' => 'pnl'])

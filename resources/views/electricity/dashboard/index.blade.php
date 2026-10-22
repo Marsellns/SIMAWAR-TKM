@@ -132,10 +132,7 @@
         <div class="row align-items-center g-4 position-relative" style="z-index: 1;">
             <div class="col-lg-7">
                 <div class="electricity-eyebrow mb-2">SIMAWAR · Electricity Monitoring</div>
-                <h1 class="h2 fw-bold mb-2">Electricity Monitoring</h1>
-                <p class="mb-0 text-white-50 mw-100">
-                    Monitoring terpadu site, kapasitas daya, tagihan, pembayaran, dan anomali untuk Centralized serta Inbuilding.
-                </p>
+                <h1 class="h2 fw-bold mb-0">Electricity Monitoring</h1>
             </div>
             <div class="col-lg-5">
                 <div class="d-flex flex-wrap justify-content-lg-end gap-2">
@@ -322,7 +319,6 @@
                 <header class="enterprise-card-header">
                     <div>
                         <h2 class="enterprise-card-title">Ringkasan Operasional</h2>
-                        <div class="small text-body-secondary mt-1">Kinerja menurut sumber data</div>
                     </div>
                 </header>
                 <div class="enterprise-card-body p-0">

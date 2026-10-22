@@ -6,10 +6,10 @@
     {{-- Header --}}
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
         <div>
-            <h1 class="h4 mb-1">{{ $showForm ? 'Input Data Tagihan IBC' : 'Daftar Tagihan Listrik IBC Tersimpan' }}</h1>
-            <p class="text-body-secondary mb-0 small">
-                {{ $showForm ? 'Form pencatatan tagihan listrik inbuilding manual dengan kalkulasi otomatis Total Tagihan & Total Payment.' : 'Daftar seluruh tagihan listrik IBC yang sudah tersimpan.' }}
-            </p>
+            <h1 class="h4 {{ $showForm ? 'mb-1' : 'mb-0' }}">{{ $showForm ? 'Input Data Tagihan IBC' : 'Daftar Tagihan Listrik IBC Tersimpan' }}</h1>
+            @if ($showForm)
+                <p class="text-body-secondary mb-0 small">Total Tagihan dan Total Payment dihitung otomatis dari isian form.</p>
+            @endif
         </div>
         <div class="d-flex flex-wrap gap-2">
             @include('operations.actions', ['dataset' => 'input-ibc', 'entryLabel' => 'Upload Excel'])

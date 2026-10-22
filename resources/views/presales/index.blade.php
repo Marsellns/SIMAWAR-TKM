@@ -7,8 +7,7 @@
 <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
     <div>
         <p class="text-uppercase small fw-bold text-primary mb-1">PO Monitoring</p>
-        <h1 class="h3 mb-1">Presales</h1>
-        <p class="text-muted mb-0">Pantau dokumen dari upload hingga persetujuan Manager NOP, SQ, NOS, dan NBAE.</p>
+        <h1 class="h3 mb-0">Presales</h1>
     </div>
     @if ($canUpload)
         <a class="btn btn-brand" href="{{ route('presales.create') }}"><i class="fa-solid fa-upload me-2"></i>Upload dokumen PDF</a>
@@ -23,7 +22,6 @@
             <div class="card-body">
                 <div class="small text-muted">Total dokumen</div>
                 <div class="fs-2 fw-bold">{{ number_format($stats['total'], 0, ',', '.') }}</div>
-                <div class="small text-muted">Terdaftar di Presales</div>
                 <span class="small text-primary">Lihat data <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></span>
             </div>
         </a>

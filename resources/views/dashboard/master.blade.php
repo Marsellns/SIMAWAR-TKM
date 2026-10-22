@@ -90,8 +90,7 @@
     {{-- Header with dashboard navigation tabs --}}
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3 page-hero">
         <div>
-            <h1 class="h4 mb-1">Grafik Dashboard</h1>
-            <p class="text-body-secondary small mb-0">Ringkasan grafik finansial dan operasional SIMAWAR.</p>
+            <h1 class="h4 mb-0">Grafik Dashboard</h1>
         </div>
 
         {{-- Main dashboard navigation tabs --}}

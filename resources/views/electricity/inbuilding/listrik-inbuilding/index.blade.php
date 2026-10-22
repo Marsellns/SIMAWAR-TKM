@@ -6,10 +6,7 @@
     {{-- Header --}}
     <div class="d-flex justify-content-between align-items-center mb-3">
         <div>
-            <h1 class="h4 mb-1">Listrik Inbuilding</h1>
-            <p class="text-body-secondary mb-0 small">
-                Master data kelistrikan inbuilding, manajemen BM, daya, tarif per kWh, dan histori tagihan.
-            </p>
+            <h1 class="h4 mb-0">Listrik Inbuilding</h1>
         </div>
         <div class="d-flex gap-2">
             @if (auth()->user()->hasRole('admin'))

@@ -7,8 +7,8 @@
     .feasibility-dashboard, #feasibility-detail-modal { --feasibility-border: var(--bs-border-color, #e2e8f0); color: var(--bs-body-color, #0f172a); }
     .feasibility-header { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem; }
     .feasibility-header img { width: 60px; height: 60px; }
-    .feasibility-header h1 { font-size: 1.65rem; font-weight: 700; margin: 0 0 .3rem; }
-    .feasibility-header p, .feasibility-panel p { color: var(--bs-secondary-color, #64748b); margin: 0; font-size: .9rem; }
+    .feasibility-header h1 { font-size: 1.65rem; font-weight: 700; margin: 0; }
+    .feasibility-panel p { color: var(--bs-secondary-color, #64748b); margin: 0; font-size: .9rem; }
     .feasibility-kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
     .feasibility-tone-blue { --tone: #0284c7; --tint: #f0f9ff; --wash: #e0f2fe; }
     .feasibility-tone-mint { --tone: #059669; --tint: #f0fdf8; --wash: #d1fae5; }
@@ -103,7 +103,7 @@
 <div class="feasibility-dashboard">
     <header class="feasibility-header">
         <img src="{{ asset('assets/modules/feasibility.svg') }}" alt="">
-        <div><h1>Feasibility Site</h1><p>Profil site, klasifikasi, dan status MLA dari Data Potensi.</p></div>
+        <div><h1>Feasibility Site</h1></div>
     </header>
 
     <div class="feasibility-kpis" aria-label="Statistik Feasibility Site">
