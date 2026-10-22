@@ -50,6 +50,9 @@ class InfrastructureRebuildImportTest extends TestCase
         $this->assertSame('Telkomsel', $details['tp']);
         $this->assertSame('Telkomsel', $details['ownership']);
         $this->assertSame('2026-07-12', $details['tanggal_penawaran_1']);
+        $this->assertSame('2026-07-01', $details['proses_negosiasi_at']);
+        $this->assertSame('2026-07-15', $details['proses_pks_owner_at']);
+        $this->assertSame(107.45, $details['longtitude']);
         $this->assertSame('DATA SEWA LAHAN', $details['_source']['sheet']);
         $this->assertSame(2, $details['_source']['row']);
         $this->assertSame([2025, 2026], array_column($data['combat'], 'tahun_justi_dirnet'));
@@ -231,8 +234,8 @@ class InfrastructureRebuildImportTest extends TestCase
         $book->getActiveSheet()->setTitle('BACKUP')->fromArray([['Site ID'], ['EXCLUDED']]);
         $book->createSheet()->setTitle('DATABASE RENEWAL')->fromArray([['Site ID'], ['MASTER-EXCLUDED']]);
         $sewa = [
-            ['Site ID', 'Sitename', 'Tahun', 'Periode Awal (Baru)', 'Periode Akhir (Baru)', 'tp', 'tp', 'Penawaran 1', 'Tanggal Penawaran 1'],
-            ['sewa01', 'Sewa Site', 2026, '2026-01-01', '2026-12-31', 'Telkomsel', null, 925000000, '2026-07-12'],
+            ['Site ID', 'Sitename', 'Tahun', 'Periode Awal (Baru)', 'Periode Akhir (Baru)', 'tp', 'tp', 'Penawaran 1', 'Tanggal Penawaran 1', 'Tgl Negosiasi', 'Tgl PKS/BAK ke Owner', 'Longtitude', 'latitude'],
+            ['sewa01', 'Sewa Site', 2026, '2026-01-01', '2026-12-31', 'Telkomsel', null, 925000000, '2026-07-12', '2026-07-01', '2026-07-15', 107.45, -6.49],
             ['sewa01', 'Sewa Site', 2027, '2027-01-01', '00:00:00', 'Telkomsel', null],
         ];
         if ($includeTp) {
