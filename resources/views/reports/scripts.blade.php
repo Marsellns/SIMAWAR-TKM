@@ -112,6 +112,7 @@
                     'aria-label': 'Tahun sebelumnya',
                 });
                 const $yearText = $('<input>', {
+                    id: pickerId + '-year',
                     class: 'form-control form-control-sm text-center fw-bold simaster-period-year',
                     type: 'number',
                     min: 2000,
@@ -141,6 +142,7 @@
                     style: 'cursor: pointer;',
                 });
                 const $allMonthsInput = $('<input>', {
+                    id: pickerId + '-all-months',
                     class: 'form-check-input mt-0 simaster-all-months',
                     type: 'checkbox',
                 });
@@ -174,9 +176,11 @@
                     $nopSection = $('<div>', { class: 'simaster-nop-section pt-2 border-top mb-2' });
                     $nopSection.append($('<div>', { class: 'small fw-semibold text-secondary mb-1', text: 'Nomor Objek Pajak (NOP):' }));
                     $nopSearchInput = $('<input>', {
+                        id: pickerId + '-nop-search',
                         type: 'text',
                         class: 'form-control form-control-sm mb-1 simaster-nop-search',
                         placeholder: 'Cari NOP...',
+                        'aria-label': 'Cari NOP',
                     }).on('input', function () {
                         const q = this.value.toLowerCase().trim();
                         if ($nopSelectInside) {
@@ -190,8 +194,10 @@
                     });
 
                     $nopSelectInside = $('<select>', {
+                        id: pickerId + '-nop',
                         class: 'form-select form-select-sm simaster-picker-nop',
                         style: 'width: 100%;',
+                        'aria-label': 'Nomor Objek Pajak (NOP)',
                     });
 
                     $nopSection.append($nopSearchInput, $nopSelectInside);
@@ -403,6 +409,7 @@
                     style: 'min-width: 260px;',
                 });
                 const $yearInput = $('<input>', {
+                    id: 'simaster-dashboard-period-year',
                     type: 'number', min: 2000, max: 2100,
                     class: 'form-control form-control-sm text-center',
                     style: 'width: 90px;',
@@ -414,7 +421,7 @@
                     style: 'grid-template-columns: repeat(3, 1fr);',
                 });
                 const $all = $('<label>', { class: 'form-check small mt-2' }).append(
-                    $('<input>', { type: 'checkbox', class: 'form-check-input' }),
+                    $('<input>', { id: 'simaster-dashboard-period-all-months', type: 'checkbox', class: 'form-check-input' }),
                     $('<span>', { class: 'form-check-label', text: ' Semua bulan' })
                 );
                 const $yearRow = $('<div>', {
