@@ -82,7 +82,7 @@
         <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable sewa-detail-dialog">
             <div class="modal-content">
                 <div class="modal-header sewa-detail-header">
-                    <h5 class="modal-title"><span class="sewa-detail-heading-icon" aria-hidden="true">⌖</span> Detail Sewa Lahan <span id="detail-title"></span></h5>
+                    <h5 class="modal-title"><span class="sewa-detail-heading-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M5 22l7-18 7 18M7 16h10M9 11h6"/></svg></span> Detail Sewa Lahan <span id="detail-title"></span></h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
                 </div>
                 <div class="modal-body sewa-detail-body" id="detail-body">
@@ -106,6 +106,7 @@
     .sewa-detail-site { font-size: 1.6rem; font-weight: 750; letter-spacing: -.025em; line-height: 1.1; overflow-wrap: anywhere; }
     .sewa-detail-name { font-weight: 600; margin-top: .2rem; overflow-wrap: anywhere; }
     .sewa-detail-muted { color: var(--bs-secondary-color); font-size: .82rem; }
+    .sewa-detail-intro .sewa-detail-muted .sewa-detail-icon { width: 1rem; height: 1rem; background: transparent; vertical-align: middle; }
     .sewa-detail-chip { display: inline-block; max-width: 100%; padding: .28rem .6rem; border-radius: 99px; background: #e8f6ee; color: #087443; font-size: .76rem; font-weight: 700; overflow-wrap: anywhere; }
     .sewa-detail-chip.is-warning { background: #fff4df; color: #a55b00; }
     .sewa-detail-chip.is-danger { background: #ffe4e6; color: #be123c; }
@@ -113,15 +114,27 @@
     .sewa-detail-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .75rem; margin-bottom: .9rem; }
     .sewa-detail-stat, .sewa-detail-card { background: var(--bs-body-bg); border: 1px solid var(--bs-border-color); border-radius: 12px; box-shadow: 0 2px 8px rgba(15, 23, 42, .025); min-width: 0; }
     .sewa-detail-stat { padding: .9rem 1rem; border-top: 3px solid #93c5fd; }
+    .sewa-detail-stat-inner { display: flex; align-items: flex-start; gap: .7rem; }
     .sewa-detail-stat:nth-child(2) { border-top-color: #c4b5fd; }
     .sewa-detail-stat:nth-child(3) { border-top-color: #fbbf24; }
     .sewa-detail-stat:nth-child(4) { border-top-color: #6ee7b7; }
     .sewa-detail-label { color: var(--bs-secondary-color); font-size: .72rem; text-transform: uppercase; letter-spacing: .055em; font-weight: 700; }
     .sewa-detail-stat-value { margin-top: .35rem; font-weight: 700; overflow-wrap: anywhere; }
+    .sewa-detail-icon { flex: none; display: inline-grid; place-items: center; width: 2rem; height: 2rem; border-radius: .6rem; color: #2563eb; background: #eff6ff; }
+    .sewa-detail-icon svg { width: 1rem; height: 1rem; }
+    .sewa-detail-icon.is-green { color: #059669; background: #ecfdf5; }
+    .sewa-detail-icon.is-amber { color: #d97706; background: #fffbeb; }
+    .sewa-detail-icon.is-violet { color: #7c3aed; background: #f5f3ff; }
     .sewa-detail-grid { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: .9rem; align-items: start; }
     .sewa-detail-column { display: grid; gap: .9rem; min-width: 0; }
     .sewa-detail-card { padding: 1.1rem; }
     .sewa-detail-card h3 { margin: 0 0 1rem; font-size: .95rem; font-weight: 700; }
+    .sewa-detail-card-head { display: flex; align-items: center; justify-content: space-between; gap: .5rem; margin-bottom: 1rem; }
+    .sewa-detail-card-head h3 { display: flex; align-items: center; gap: .5rem; margin: 0; }
+    .sewa-detail-card-head .sewa-detail-icon { width: 1.65rem; height: 1.65rem; }
+    .sewa-detail-card-head .sewa-detail-icon svg { width: .9rem; height: .9rem; }
+    .sewa-detail-card-head .btn { white-space: nowrap; }
+    .sewa-detail-card-head .btn .sewa-detail-icon { width: 1rem; height: 1rem; margin-right: .15rem; background: transparent; vertical-align: middle; }
     .sewa-detail-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem 1.2rem; margin: 0; }
     .sewa-detail-field { min-width: 0; padding-bottom: .55rem; border-bottom: 1px solid var(--bs-border-color); }
     .sewa-detail-field dt { color: var(--bs-secondary-color); font-size: .74rem; font-weight: 500; }
@@ -144,6 +157,9 @@
     .sewa-detail-extra summary { cursor: pointer; font-weight: 650; }
     .sewa-detail-extra .sewa-detail-fields { margin-top: 1rem; }
     .sewa-detail-performance { margin-top: .9rem; }
+    .sewa-detail-edit-heading { display: flex; align-items: center; justify-content: space-between; gap: .75rem; margin-bottom: 1rem; }
+    .sewa-detail-edit-heading h2 { margin: 0; font-size: 1.15rem; font-weight: 700; }
+    .sewa-detail-edit-form { padding: 1.25rem; border: 1px solid var(--bs-border-color); border-radius: 12px; background: var(--bs-body-bg); }
     @media (max-width: 850px) {
         .sewa-detail-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
         .sewa-detail-grid { grid-template-columns: 1fr; }
@@ -340,6 +356,11 @@ $(function () {
         'harga_baruth', 'harga_baru_th', 'harga_baru', 'total_harga_baru',
         'no_bak_baru', 'tanggal_bak', 'tgl_bak_baru', 'no_sip', 'tgl_terima_sip',
         'penawaran_1', 'nego_1', 'penawaran_2', 'nego_2', 'penawaran_3', 'nego_3',
+        'tanggal_penawaran_1', 'tanggal_nego_1', 'tanggal_penawaran_2', 'tanggal_nego_2',
+        'tanggal_penawaran_3', 'tanggal_nego_3', 'tgl_penawaran_1', 'tgl_nego_1',
+        'tgl_penawaran_2', 'tgl_nego_2', 'tgl_penawaran_3', 'tgl_nego_3',
+        'tanggal_negosiasi_1', 'tanggal_negosiasi_2', 'tanggal_negosiasi_3',
+        'tgl_negosiasi_1', 'tgl_negosiasi_2', 'tgl_negosiasi_3',
         'nomor_pks_existing', 'no_pks_lama', 'periode_awal_existing', 'start_date_lama',
         'periode_akhir_existing', 'end_date_lama', 'harga_existing_th', 'harga_lama',
         'keterangan', 'update_by', 'tgl_update',
@@ -383,6 +404,18 @@ $(function () {
         return rows ? `<details class="sewa-detail-card sewa-detail-extra"><summary>Kolom tambahan dari sumber data</summary><dl class="sewa-detail-fields">${rows}</dl></details>` : '';
     }
 
+    function sewaIcon(name, tone = '') {
+        const paths = {
+            status: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><path d="m10.5 12 1 1 2-2"/>',
+            document: '<path d="M7 3h7l4 4v14H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z"/><path d="M14 3v5h5M9 12h6M9 16h6"/>',
+            clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+            pin: '<path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/>',
+            contract: '<path d="M7 3h10a2 2 0 0 1 2 2v16l-3-2-4 2-4-2-3 2V5a2 2 0 0 1 2-2Z"/><path d="M9 9h6M9 13h6"/>',
+            edit: '<path d="M12 20h9M4 16l-.5 4.5L8 20l11-11-4-4L4 16ZM13 7l4 4"/>',
+        };
+        return `<span class="sewa-detail-icon${tone ? ` is-${tone}` : ''}" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${paths[name]}</svg></span>`;
+    }
+
     function renderDetail(d) {
         const statusSite = detailValue(d, 'status');
         const address = detailValue(d, 'address', 'alamat');
@@ -398,8 +431,11 @@ $(function () {
             ['Penawaran 3', 'penawaran_3'], ['Nego 3', 'nego_3'],
         ];
         const timeline = stages.map(([label, key]) => {
-            const hasValue = d[key] !== null && d[key] !== undefined && d[key] !== '';
-            return `<div class="sewa-detail-step${hasValue ? ' is-recorded' : ''}"><strong>${label}</strong><span>${hasValue ? esc(moneyLabel(d[key])) : 'Belum tercatat'}</span></div>`;
+            const amount = d[key];
+            const date = detailValue(d, `tanggal_${key}`);
+            const hasAmount = amount !== null && amount !== undefined && amount !== '';
+            const recorded = hasAmount || date !== null;
+            return `<div class="sewa-detail-step${recorded ? ' is-recorded' : ''}"><strong>${label}</strong><span>${date ? fmtDate(date) : recorded ? 'Tanggal belum tersedia' : 'Belum tercatat'}</span>${hasAmount ? `<span>${esc(moneyLabel(amount))}</span>` : ''}</div>`;
         }).join('');
         const chipClass = value => {
             if (!value) return ' is-neutral';
@@ -407,21 +443,24 @@ $(function () {
             if (/^on\s*air$|^active$|^operational$/i.test(String(value))) return '';
             return ' is-neutral';
         };
+        const editButton = d.edit_url
+            ? `<button type="button" class="btn btn-sm btn-outline-secondary" data-sewa-edit data-url="${esc(d.edit_url)}">${sewaIcon('edit')} Edit</button>`
+            : '';
 
         return `
         <div class="sewa-detail-intro">
-            <div><div class="sewa-detail-site">${esc(d.site_code)}</div><div class="sewa-detail-name">${esc(d.site_name)}</div><div class="sewa-detail-muted">${esc(location)}</div></div>
+            <div><div class="sewa-detail-site">${esc(d.site_code)}</div><div class="sewa-detail-name">${esc(d.site_name)}</div><div class="sewa-detail-muted">${sewaIcon('pin', 'green')} ${esc(location)}</div></div>
             <span class="sewa-detail-chip${chipClass(statusSite)}">${esc(statusSite || 'Status site belum tersedia')}</span>
         </div>
         <div class="sewa-detail-stats">
-            <div class="sewa-detail-stat"><div class="sewa-detail-label">Status Site</div><div class="sewa-detail-stat-value">${esc(statusSite)}</div></div>
-            <div class="sewa-detail-stat"><div class="sewa-detail-label">Status Dokumen</div><div class="sewa-detail-stat-value">${esc(d.status_dokumen)}</div></div>
-            <div class="sewa-detail-stat"><div class="sewa-detail-label">Status Perpanjangan</div><div class="sewa-detail-stat-value">${esc(d.status_perpanjangan)}</div></div>
-            <div class="sewa-detail-stat"><div class="sewa-detail-label">Lokasi Site</div><div class="sewa-detail-stat-value">${esc(location)}</div></div>
+            <div class="sewa-detail-stat"><div class="sewa-detail-stat-inner">${sewaIcon('status', 'green')}<div><div class="sewa-detail-label">Status Site</div><div class="sewa-detail-stat-value">${esc(statusSite)}</div></div></div></div>
+            <div class="sewa-detail-stat"><div class="sewa-detail-stat-inner">${sewaIcon('document')}<div><div class="sewa-detail-label">Status Dokumen</div><div class="sewa-detail-stat-value">${esc(d.status_dokumen)}</div></div></div></div>
+            <div class="sewa-detail-stat"><div class="sewa-detail-stat-inner">${sewaIcon('clock', 'amber')}<div><div class="sewa-detail-label">Status Perpanjangan</div><div class="sewa-detail-stat-value">${esc(d.status_perpanjangan)}</div></div></div></div>
+            <div class="sewa-detail-stat"><div class="sewa-detail-stat-inner">${sewaIcon('pin', 'green')}<div><div class="sewa-detail-label">Lokasi Site</div><div class="sewa-detail-stat-value">${esc(location)}</div></div></div></div>
         </div>
         <div class="sewa-detail-grid">
             <div class="sewa-detail-column">
-                <section class="sewa-detail-card"><h3>Informasi Utama</h3><dl class="sewa-detail-fields">
+                <section class="sewa-detail-card"><div class="sewa-detail-card-head"><h3>${sewaIcon('document')} Informasi Utama</h3>${editButton}</div><dl class="sewa-detail-fields">
                     ${detailField('Site ID', d.site_code)}${detailField('Vendor', detailValue(d, 'vendor', 'tp'))}
                     ${detailField('Nama Site', d.site_name)}${detailField('Status Site', statusSite)}
                     ${detailField('Tahun Renewal', d.tahun_renewal)}${detailField('Status Dokumen', d.status_dokumen)}
@@ -429,14 +468,14 @@ $(function () {
                     ${detailField('Kepemilikan', detailValue(d, 'ownership'))}${detailField('Masa Sewa', d.lease_duration)}
                     ${detailField('NOP', detailValue(d, 'nop'))}
                 </dl></section>
-                <section class="sewa-detail-card"><h3>PKS Baru / Renewal</h3><dl class="sewa-detail-fields">
+                <section class="sewa-detail-card"><div class="sewa-detail-card-head"><h3>${sewaIcon('contract', 'violet')} PKS Baru / Renewal</h3></div><dl class="sewa-detail-fields">
                     ${detailField('Nomor PKS Baru', d.no_pks_baru, true)}
                     ${detailField('Mulai', fmtDate(d.start_date_baru))}${detailField('Berakhir', fmtDate(d.end_date_baru))}
                     ${detailField('Harga Baru / Tahun', moneyLabel(d.harga_baru))}${detailField('Total Harga Baru', moneyLabel(d.total_harga_baru))}
                 </dl></section>
             </div>
             <div class="sewa-detail-column">
-                <section class="sewa-detail-card"><h3>Lokasi Site</h3>
+                <section class="sewa-detail-card"><div class="sewa-detail-card-head"><h3>${sewaIcon('pin', 'green')} Lokasi Site</h3></div>
                     <div class="sewa-detail-map" data-sewa-map>${point ? `<div><div class="sewa-detail-map-mark" aria-hidden="true">●</div><strong>Koordinat tersedia</strong><div class="sewa-detail-muted">Peta dimuat saat diminta</div><div class="sewa-detail-map-actions"><button type="button" class="btn btn-sm btn-outline-primary" data-sewa-load-map data-lat="${point.lat}" data-lon="${point.lon}">Tampilkan peta</button></div></div>` : '<span class="sewa-detail-muted">Koordinat site belum tersedia</span>'}</div>
                     <dl class="sewa-detail-fields mt-3">
                         ${detailField('Alamat Lengkap', address, true)}${detailField('Region', region)}
@@ -445,14 +484,14 @@ $(function () {
                     </dl>
                     ${point ? `<a class="btn btn-sm btn-outline-primary mt-2" href="${mapUrl}" target="_blank" rel="noopener noreferrer">Lihat di Maps ↗</a>` : ''}
                 </section>
-                <section class="sewa-detail-card"><h3>PKS Existing</h3><dl class="sewa-detail-fields">
+                <section class="sewa-detail-card"><div class="sewa-detail-card-head"><h3>${sewaIcon('contract', 'violet')} PKS Existing</h3></div><dl class="sewa-detail-fields">
                     ${detailField('Nomor PKS Existing', d.no_pks_lama, true)}
                     ${detailField('Mulai', fmtDate(d.start_date_lama))}${detailField('Berakhir', fmtDate(d.end_date_lama))}
                     ${detailField('Harga / Tahun', moneyLabel(d.harga_lama))}${detailField('Total Harga Existing', moneyLabel(detailValue(d, 'total_harga_existing')))}
                 </dl></section>
             </div>
         </div>
-        <section class="sewa-detail-card mt-3"><h3>Proses Perpanjangan</h3><div class="sewa-detail-muted">Tahap berwarna menandakan nilai penawaran atau negosiasi tercatat.</div><div class="sewa-detail-timeline">${timeline}</div>
+        <section class="sewa-detail-card mt-3"><div class="sewa-detail-card-head"><h3>${sewaIcon('clock', 'amber')} Proses Perpanjangan</h3></div><div class="sewa-detail-muted">Tahap berwarna menandakan tanggal atau nilai penawaran/negosiasi sudah tercatat di Excel.</div><div class="sewa-detail-timeline">${timeline}</div>
             <details class="sewa-detail-extra"><summary>Dokumen & proses</summary><dl class="sewa-detail-fields">
                 ${detailField('Nomor BAK Baru', d.no_bak_baru)}${detailField('Tanggal BAK Baru', fmtDate(d.tgl_bak_baru))}
                 ${detailField('Nomor SIP', d.no_sip)}${detailField('Tanggal Terima SIP', fmtDate(d.tgl_terima_sip))}
@@ -468,6 +507,76 @@ $(function () {
     }
 
     const detailModal = new bootstrap.Modal('#detailModal');
+    let currentDetailRow = null;
+
+    function showCurrentDetail() {
+        if (!currentDetailRow) return;
+        $('#detail-body').html(renderDetail(currentDetailRow));
+        window.renderInfrastructureSitePerformance(
+            document.querySelector('#detail-body [data-site-performance]'),
+            currentDetailRow.performance
+        );
+    }
+
+    $('#detail-body').on('click', '[data-sewa-edit]', async function () {
+        const url = this.dataset.url;
+        $('#detail-body').html('<div class="text-center text-body-secondary py-5">Memuat formulir edit...</div>');
+        try {
+            const response = await fetch(`${url}?modal=1`, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+            if (!response.ok) throw new Error('Formulir edit tidak dapat dibuka. Periksa sesi dan hak akses Anda.');
+            const formMarkup = $('<div>').html(await response.text());
+            if (!formMarkup.find('[data-sewa-edit-form]').length) throw new Error('Sesi telah berakhir. Muat ulang halaman untuk melanjutkan.');
+            formMarkup.find('[id]').each(function () { this.id = `sewa-modal-${this.id}`; });
+            formMarkup.find('label[for]').each(function () { this.htmlFor = `sewa-modal-${this.htmlFor}`; });
+            $('#detail-body').html(`<div class="sewa-detail-edit-heading"><h2>Edit Sewa Lahan ${esc(currentDetailRow.site_code)}</h2></div><div class="sewa-detail-edit-form"></div>`);
+            $('#detail-body .sewa-detail-edit-form').append(formMarkup.contents());
+            $('#detail-body').scrollTop(0);
+            $('#detail-body [data-sewa-edit-form] input:not([type="hidden"])').first().trigger('focus');
+        } catch (error) {
+            showCurrentDetail();
+            $('#detail-body').prepend(`<div class="alert alert-danger" role="alert">${esc(error.message)}</div>`);
+        }
+    });
+
+    $('#detail-body').on('click', '[data-sewa-cancel-edit]', showCurrentDetail);
+
+    $('#detail-body').on('submit', '[data-sewa-edit-form]', async function (event) {
+        event.preventDefault();
+        const form = this;
+        const submit = form.querySelector('[type="submit"]');
+        const errorBox = form.querySelector('[data-sewa-form-errors]');
+        errorBox.classList.add('d-none');
+        form.querySelectorAll('.is-invalid').forEach(field => field.classList.remove('is-invalid'));
+        submit.disabled = true;
+        try {
+            const response = await fetch(form.action, {
+                method: 'POST', body: new FormData(form),
+                headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+            });
+            if (!response.headers.get('content-type')?.includes('application/json')) {
+                throw new Error('Sesi telah berakhir. Muat ulang halaman untuk melanjutkan.');
+            }
+            const data = await response.json();
+            if (response.status === 422) {
+                errorBox.textContent = Object.values(data.errors || {}).flat().join(' ') || 'Periksa kembali isian formulir.';
+                errorBox.classList.remove('d-none');
+                for (const name of Object.keys(data.errors || {})) {
+                    const field = Array.from(form.elements).find(element => element.name === name);
+                    if (field) field.classList.add('is-invalid');
+                }
+                errorBox.scrollIntoView({ block: 'nearest' });
+                return;
+            }
+            if (!response.ok) throw new Error(data.message || 'Perubahan tidak dapat disimpan.');
+            $('#detail-body').html(`<div class="alert alert-success mb-0" role="status">${esc(data.message || 'Perubahan berhasil disimpan.')}</div><button type="button" class="btn btn-outline-secondary mt-3" data-bs-dismiss="modal">Tutup</button>`);
+            table.ajax.reload(null, false);
+        } catch (error) {
+            errorBox.textContent = error.message || 'Koneksi terputus. Coba lagi.';
+            errorBox.classList.remove('d-none');
+        } finally {
+            submit.disabled = false;
+        }
+    });
 
     $('#detail-body').on('click', '[data-sewa-load-map]', function () {
         const lat = Number(this.dataset.lat);
@@ -489,13 +598,11 @@ $(function () {
         if ($(e.target).closest('.aksi-cell').length > 0) return;
         const row = table.row(this).data();
         if (!row) return;
+        currentDetailRow = row;
         $('#detail-title').text(row.site_code ?? '');
         $('#detail-body').html(renderDetail(row));
         $('#detailModal').one('shown.bs.modal', function () {
-            window.renderInfrastructureSitePerformance(
-                document.querySelector('#detail-body [data-site-performance]'),
-                row.performance
-            );
+            showCurrentDetail();
         });
         detailModal.show(this);
     });
