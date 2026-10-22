@@ -179,6 +179,9 @@ class InfrastructureRebuildImport
                     if ($mapped === null) {
                         throw new RuntimeException('Baris tidak dapat dipetakan pada '.$definition['sheet'].' baris '.$number);
                     }
+                    if ($key === 'sewa-lahan') {
+                        $normalized = json_decode($mapped['source_details'], true, 512, JSON_THROW_ON_ERROR);
+                    }
                     $normalized['_source'] = [
                         'file' => basename($sourceName ?? $path), 'sha256' => $fingerprint,
                         'sheet' => $definition['sheet'], 'row' => $number, 'cells' => $source,
@@ -219,3 +222,4 @@ class InfrastructureRebuildImport
         }
     }
 }
+
