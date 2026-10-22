@@ -65,6 +65,7 @@ class CombatSiteController extends Controller
                 'aksi',
                 fn (CombatSite $c) => view('infrastruktur.combat.partials.aksi', ['combat' => $c])->render()
             );
+            $dataTable->addColumn('edit_url', fn (CombatSite $c) => route('infrastruktur.combat.edit', $c));
         }
 
         return $dataTable
@@ -76,10 +77,47 @@ class CombatSiteController extends Controller
             ->addColumn('performance', fn (CombatSite $c) => InfrastructureMetrics::sitePerformance($c))
             ->addColumn('next_action_label', fn (CombatSite $c) => InfrastructureMetrics::nextActionLabel($c))
             ->addColumn('priority_label', fn (CombatSite $c) => InfrastructureMetrics::priorityLabel($c))
+            ->addColumn('detail_url', fn (CombatSite $c) => route('infrastruktur.combat.show', $c))
             ->editColumn('source_details', fn (CombatSite $c) => CombatSourceDetails::flattened($c->source_details))
             ->editColumn('status_dokumen', fn (CombatSite $c) => Str::limit((string) $c->status_dokumen, 50))
             ->rawColumns($isAdmin ? ['aksi'] : [])
             ->toJson();
+    }
+
+    /** Data popup untuk satu baris Combat, termasuk riwayat tahun dari site yang sama. */
+    public function show(CombatSite $combat): JsonResponse
+    {
+        $site = $combat->toArray();
+        $site['detail_url'] = route('infrastruktur.combat.show', $combat);
+        $site['source_details'] = CombatSourceDetails::flattened($combat->source_details);
+        $site['lease_duration'] = InfrastructureMetrics::leaseDurationLabel($combat);
+        $site['pks_status_label'] = InfrastructureMetrics::pksStatusLabel($combat);
+        $site['process_started_at'] = InfrastructureMetrics::processStartDate($combat)?->toDateString();
+        $site['process_aging_days'] = InfrastructureMetrics::processAgingDays($combat);
+        $site['performance'] = InfrastructureMetrics::sitePerformance($combat);
+        if (auth()->user()->hasRole('admin')) {
+            $site['edit_url'] = route('infrastruktur.combat.edit', $combat);
+        }
+
+        $history = CombatSite::query()
+            ->where('site_code', $combat->site_code)
+            ->orderByDesc('tahun_justi_dirnet')
+            ->orderByDesc('id')
+            ->get(['id', 'site_code', 'site_name', 'tahun_justi_dirnet', 'status_dokumen', 'status_perpanjangan', 'source_details'])
+            ->map(function (CombatSite $row): array {
+                $details = CombatSourceDetails::flattened($row->source_details);
+
+                return [
+                    'id' => $row->id,
+                    'site_name' => $row->site_name,
+                    'year' => $row->tahun_justi_dirnet,
+                    'status_dokumen' => $row->status_dokumen,
+                    'status_perpanjangan' => $row->status_perpanjangan,
+                    'status_justifikasi' => $details['status_justifikasi'] ?? $details['justifikasi'] ?? null,
+                ];
+            });
+
+        return response()->json(['site' => $site, 'history' => $history]);
     }
 
     private function applyDashboardFilter($query, Request $request): void
@@ -299,21 +337,29 @@ class CombatSiteController extends Controller
     /**
      * Form edit Combat site.
      */
-    public function edit(CombatSite $combat): View
+    public function edit(Request $request, CombatSite $combat): View
     {
+        if ($request->boolean('modal')) {
+            return view('infrastruktur.combat.partials.edit-modal', compact('combat'));
+        }
+
         return view('infrastruktur.combat.edit', compact('combat'));
     }
 
     /**
      * Simpan perubahan Combat site.
      */
-    public function update(UpdateCombatSiteRequest $request, CombatSite $combat): RedirectResponse
+    public function update(UpdateCombatSiteRequest $request, CombatSite $combat): JsonResponse|RedirectResponse
     {
         $data = $request->validated();
         $data['update_by'] = auth()->user()->name;
         $data['tanggal']   = now();
 
         $combat->update($data);
+
+        if ($request->expectsJson()) {
+            return response()->json(['message' => "Combat site {$combat->site_code} berhasil diperbarui."]);
+        }
 
         return redirect()
             ->route('infrastruktur.combat.index')

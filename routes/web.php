@@ -172,7 +172,7 @@ Route::middleware('auth')->group(function () {
         Route::get('combat/data', [CombatSiteController::class, 'data'])->name('combat.data');
         Route::get('combat/export-excel', [CombatSiteController::class, 'exportExcel'])->name('combat.export-excel');
         Route::resource('combat', CombatSiteController::class)
-            ->only(['index', 'edit', 'update', 'destroy'])
+            ->only(['index', 'show', 'edit', 'update', 'destroy'])
             ->parameters(['combat' => 'combat'])
             ->middlewareFor(['edit', 'update', 'destroy'], 'role:admin');
 
