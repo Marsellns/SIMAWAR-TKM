@@ -18,7 +18,7 @@
 @endpush
 
 @section('content')
-<div class="page-hero mb-3">
+<div class="page-hero d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
     <h1 class="h4 mb-0">Infrastruktur Performance</h1>
 </div>
 @include('infrastruktur.partials.scope-filter', ['scope' => 'all'])
@@ -32,7 +32,7 @@
 </div>
 
 <div id="infra-panel-overview" class="infra-tab-panel" data-infra-panel="overview" role="tabpanel" aria-labelledby="infra-tab-overview">
-<div class="row g-3 mb-4">
+<div class="row g-3 mb-3">
     @foreach ([
         ['id' => 'total', 'label' => 'Total Site', 'class' => 'primary', 'icon' => 'tower'],
         ['id' => 'active', 'label' => 'Status On Air', 'class' => 'success', 'icon' => 'check'],

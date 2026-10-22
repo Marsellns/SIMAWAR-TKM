@@ -128,14 +128,14 @@
 @endpush
 
 @section('content')
-    <section class="electricity-hero shadow-sm mb-4 p-4">
+    <section class="electricity-hero shadow-sm mb-3 p-4">
         <div class="row align-items-center g-4 position-relative" style="z-index: 1;">
             <div class="col-lg-7">
                 <div class="electricity-eyebrow mb-2">SIMAWAR · Electricity Monitoring</div>
                 <h1 class="h2 fw-bold mb-0">Electricity Monitoring</h1>
             </div>
             <div class="col-lg-5">
-                <div class="d-flex flex-wrap justify-content-lg-end gap-2">
+                <div class="d-flex flex-wrap justify-content-lg-end gap-2" data-simaster-filter-launcher>
                     <a href="{{ route('electricity.centralized.listrik-pln.index') }}" class="btn btn-sm btn-electricity-link">Master PLN</a>
                     <a href="{{ route('electricity.centralized.payment.index') }}" class="btn btn-sm btn-electricity-link">Payment PLN</a>
                     <a href="{{ route('electricity.inbuilding.listrik-inbuilding.index') }}" class="btn btn-sm btn-electricity-link">Master Inbuilding</a>
@@ -176,13 +176,13 @@
 
     <div id="electricity-error" class="alert alert-danger d-none" role="alert"></div>
 
-    <div class="enterprise-tabs-nav electricity-tabs-nav mb-4" role="tablist" aria-label="Submodul Electricity Monitoring">
+    <div class="enterprise-tabs-nav electricity-tabs-nav mb-3" role="tablist" aria-label="Submodul Electricity Monitoring">
         <button type="button" class="enterprise-tab-btn active" id="electricity-tab-overview" role="tab" aria-selected="true" aria-controls="electricity-panel-overview" data-electricity-tab="overview">Ringkasan &amp; Pembayaran</button>
         <button type="button" class="enterprise-tab-btn" id="electricity-tab-sites" role="tab" aria-selected="false" aria-controls="electricity-panel-sites" data-electricity-tab="sites" tabindex="-1">Site &amp; Kapasitas</button>
         <button type="button" class="enterprise-tab-btn" id="electricity-tab-anomalies" role="tab" aria-selected="false" aria-controls="electricity-panel-anomalies" data-electricity-tab="anomalies" tabindex="-1">Anomali Tagihan</button>
     </div>
     <section id="electricity-panel-overview" role="tabpanel" aria-labelledby="electricity-tab-overview" data-electricity-panel="overview">
-    <div class="row g-3 mb-4" aria-live="polite">
+    <div class="row g-3 mb-3" aria-live="polite">
         <div class="col-6 col-xl-2">
             <article class="enterprise-kpi electricity-kpi is-loading">
                 <div class="d-flex justify-content-between align-items-start mb-3">
