@@ -503,6 +503,11 @@
                 source.classList.add('simaster-filter-source');
 
                 const placeInHeader = function (control) {
+                    const designatedActions = reportRoot.querySelector('[data-simaster-filter-launcher]');
+                    if (designatedActions) {
+                        designatedActions.appendChild(control);
+                        return designatedActions;
+                    }
                     const heading = document.querySelector('.app-main h1');
                     const headingRow = heading ? heading.closest('.d-flex') : null;
                     if (headingRow) {
