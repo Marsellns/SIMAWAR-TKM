@@ -108,6 +108,7 @@
     .sewa-detail-muted { color: var(--bs-secondary-color); font-size: .82rem; }
     .sewa-detail-chip { display: inline-block; max-width: 100%; padding: .28rem .6rem; border-radius: 99px; background: #e8f6ee; color: #087443; font-size: .76rem; font-weight: 700; overflow-wrap: anywhere; }
     .sewa-detail-chip.is-warning { background: #fff4df; color: #a55b00; }
+    .sewa-detail-chip.is-danger { background: #ffe4e6; color: #be123c; }
     .sewa-detail-chip.is-neutral { background: var(--bs-secondary-bg); color: var(--bs-body-color); }
     .sewa-detail-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .75rem; margin-bottom: .9rem; }
     .sewa-detail-stat, .sewa-detail-card { background: var(--bs-body-bg); border: 1px solid var(--bs-border-color); border-radius: 12px; box-shadow: 0 2px 8px rgba(15, 23, 42, .025); min-width: 0; }
@@ -400,7 +401,12 @@ $(function () {
             const hasValue = d[key] !== null && d[key] !== undefined && d[key] !== '';
             return `<div class="sewa-detail-step${hasValue ? ' is-recorded' : ''}"><strong>${label}</strong><span>${hasValue ? esc(moneyLabel(d[key])) : 'Belum tercatat'}</span></div>`;
         }).join('');
-        const chipClass = value => !value ? ' is-neutral' : /nego|proses|pending|belum/i.test(String(value)) ? ' is-warning' : '';
+        const chipClass = value => {
+            if (!value) return ' is-neutral';
+            if (/off\s*air|non.?operational|non.?aktif|dismantle|unlock|relokasi/i.test(String(value))) return ' is-danger';
+            if (/^on\s*air$|^active$|^operational$/i.test(String(value))) return '';
+            return ' is-neutral';
+        };
 
         return `
         <div class="sewa-detail-intro">
