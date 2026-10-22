@@ -142,7 +142,7 @@
 @endsection
 
 @push('scripts')
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js"></script>
+<script src="{{ asset('assets/vendor/chart.js/4.4.6/chart.umd.min.js') }}"></script>
 <script>
 $(function () {
     const dataApiUrl = @json(route('electricity.centralized.listrik-pln.grafik-data', $listrikPln));
