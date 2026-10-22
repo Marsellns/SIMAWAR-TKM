@@ -16,7 +16,7 @@ const $ = () => ({
     text(value) { this.value = value; return this; },
     html() { return escapeHtml(this.value); },
 });
-const context = vm.createContext({ $, Date, Intl });
+const context = vm.createContext({ $, Date, Intl, URL });
 vm.runInContext(view.slice(start, end) + '\nthis.renderDetail = renderDetail;', context);
 
 test('Rebuild dates produce an operational timeline and accept the source longitude spelling', () => {
@@ -30,9 +30,22 @@ test('Rebuild dates produce an operational timeline and accept the source longit
     });
     assert.match(html, /PKS\/BAK ke Owner/);
     assert.match(html, /Negosiasi/);
-    assert.match(html, /data-sewa-load-map/);
+    assert.match(html, /Rute dari posisi saya/);
+    assert.match(html, /destination=-6\.49%2C107\.45/);
     assert.doesNotMatch(html, /1970/);
     assert.doesNotMatch(html, /<strong>Penawaran 1<\/strong>/);
+});
+
+test('address-only site still offers directions, while missing location does not', () => {
+    const addressOnly = context.renderDetail({
+        site_code: 'DPK019',
+        source_details: { address: 'Jl. Raya Gandul 22', kabupaten: 'KOTA DEPOK' },
+    });
+    assert.match(addressOnly, /Rute dari posisi saya/);
+    assert.match(addressOnly, /destination=Jl\\.\\+Raya\\+Gandul\\+22%2C\\+KOTA\\+DEPOK%2C\\+Indonesia/);
+
+    const missing = context.renderDetail({ site_code: 'NO-LOCATION', source_details: {} });
+    assert.doesNotMatch(missing, /Rute dari posisi saya/);
 });
 
 test('template values and dates produce the offer timeline without inventing other stages', () => {
