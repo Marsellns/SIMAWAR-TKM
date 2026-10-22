@@ -103,6 +103,9 @@
     #detailModal .sewa-detail-heading-icon { display: inline-grid; place-items: center; width: 2rem; height: 2rem; margin-right: .4rem; border-radius: .65rem; color: #2563eb; background: #eff6ff; }
     #detailModal .sewa-detail-body { padding: 1.5rem; background: var(--bs-tertiary-bg); }
     .sewa-detail-intro { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .75rem; align-items: center; margin-bottom: 1.25rem; }
+    .sewa-detail-intro-site { display: flex; align-items: center; gap: .75rem; min-width: 0; }
+    .sewa-detail-intro-site > .sewa-detail-icon { width: 2.8rem; height: 2.8rem; }
+    .sewa-detail-intro-site > .sewa-detail-icon svg { width: 1.5rem; height: 1.5rem; }
     .sewa-detail-site { font-size: 1.6rem; font-weight: 750; letter-spacing: -.025em; line-height: 1.1; overflow-wrap: anywhere; }
     .sewa-detail-name { font-weight: 600; margin-top: .2rem; overflow-wrap: anywhere; }
     .sewa-detail-muted { color: var(--bs-secondary-color); font-size: .82rem; }
@@ -144,7 +147,7 @@
     .sewa-detail-map iframe { width: 100%; height: 220px; border: 0; }
     .sewa-detail-map-mark { color: #e11d48; font-size: 2rem; line-height: 1; }
     .sewa-detail-map-actions { margin-top: .5rem; display: flex; flex-wrap: wrap; gap: .5rem; justify-content: center; }
-    .sewa-detail-timeline { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: .4rem; margin-top: .7rem; }
+    .sewa-detail-timeline { display: grid; grid-template-columns: repeat(var(--sewa-step-count, 6), minmax(0, 1fr)); gap: .4rem; margin-top: .7rem; }
     .sewa-detail-step { position: relative; min-width: 0; padding-top: 2rem; text-align: center; color: var(--bs-secondary-color); font-size: .75rem; }
     .sewa-detail-step::before { content: ''; position: absolute; top: .4rem; left: calc(50% - .42rem); width: .84rem; height: .84rem; border-radius: 50%; background: #cbd5e1; z-index: 1; }
     .sewa-detail-step::after { content: ''; position: absolute; top: .77rem; left: 50%; width: 100%; height: 2px; background: #cbd5e1; }
@@ -171,7 +174,7 @@
         .sewa-detail-stat { padding: .75rem; }
         .sewa-detail-fields { grid-template-columns: 1fr; }
         .sewa-detail-timeline { grid-template-columns: repeat(3, minmax(0, 1fr)); row-gap: .8rem; }
-        .sewa-detail-step:nth-child(3)::after { display: none; }
+        .sewa-detail-step:nth-child(3n)::after { display: none; }
     }
 </style>
 @endpush
@@ -361,6 +364,8 @@ $(function () {
         'tgl_penawaran_2', 'tgl_nego_2', 'tgl_penawaran_3', 'tgl_nego_3',
         'tanggal_negosiasi_1', 'tanggal_negosiasi_2', 'tanggal_negosiasi_3',
         'tgl_negosiasi_1', 'tgl_negosiasi_2', 'tgl_negosiasi_3',
+        'proses_negosiasi_at', 'proses_pks_owner_at', 'proses_pks_legal_at',
+        'proses_budget_at', 'proses_paid_at', 'proses_drop_at',
         'nomor_pks_existing', 'no_pks_lama', 'periode_awal_existing', 'start_date_lama',
         'periode_akhir_existing', 'end_date_lama', 'harga_existing_th', 'harga_lama',
         'keterangan', 'update_by', 'tgl_update',
@@ -375,9 +380,28 @@ $(function () {
         return value === null || value === undefined || value === '' ? '-' : `Rp ${fmtMoney(value)}`;
     }
 
+    function fmtStageDate(value) {
+        if (value === null || value === undefined || value === '') return null;
+        const text = String(value).trim();
+        if (!text || text === '-' || text.startsWith('=')) return null;
+        const serial = Number(value);
+        let date;
+        if (Number.isInteger(serial) && serial >= 20000 && serial <= 80000) {
+            date = new Date(Date.UTC(1899, 11, 30) + serial * 86400000);
+        } else {
+            const dayFirst = text.match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{4})$/);
+            date = dayFirst
+                ? new Date(Date.UTC(Number(dayFirst[3]), Number(dayFirst[2]) - 1, Number(dayFirst[1])))
+                : new Date(text);
+            if (dayFirst && (date.getUTCDate() !== Number(dayFirst[1]) || date.getUTCMonth() !== Number(dayFirst[2]) - 1)) return null;
+        }
+        return Number.isNaN(date.getTime()) ? null
+            : date.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'UTC' });
+    }
+
     function coordinates(d) {
         const latValue = detailValue(d, 'latitude', 'lat');
-        const lonValue = detailValue(d, 'longitude', 'lng', 'lon');
+        const lonValue = detailValue(d, 'longitude', 'longtitude', 'lng', 'lon');
         if (latValue === null || lonValue === null) return null;
         const lat = Number(latValue);
         const lon = Number(lonValue);
@@ -395,7 +419,7 @@ $(function () {
                 if (typeof value === 'string' && value.trim().startsWith('=')) return false;
                 const cleanKey = key.toLowerCase().replace(/[\s\/\-]+/g, '_');
                 if (isPnlKey(cleanKey)) return false;
-                if (['pks_status', 'status_masa_sewa', 'status_masa_sewa2', 'address', 'alamat', 'latitude', 'longitude', 'lat', 'lon', 'lng', 'region', 'kabupaten', 'kecamatan', 'total_harga_existing', 'tindak_lanjut'].includes(cleanKey)) return false;
+                if (['pks_status', 'status_masa_sewa', 'status_masa_sewa2', 'address', 'alamat', 'latitude', 'longitude', 'longtitude', 'lat', 'lon', 'lng', 'region', 'kabupaten', 'kecamatan', 'desa', 'total_harga_existing', 'tindak_lanjut', 'tgl_negosiasi', 'tanggal_negosiasi', 'tgl_pksbak_ke_owner', 'tgl_pks_bak_ke_owner', 'tgl_pks_ke_owner', 'tgl_pks_ke_legal', 'tgl_budget', 'tgl_paid', 'tgl_drop'].includes(cleanKey)) return false;
                 if (KNOWN_SEWA_KEYS.has(cleanKey)) return false;
                 return true;
             })
@@ -406,6 +430,7 @@ $(function () {
 
     function sewaIcon(name, tone = '') {
         const paths = {
+            tower: '<path d="M12 2v20M5 22l7-18 7 18M7 16h10M9 11h6"/>',
             status: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><path d="m10.5 12 1 1 2-2"/>',
             document: '<path d="M7 3h7l4 4v14H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z"/><path d="M14 3v5h5M9 12h6M9 16h6"/>',
             clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
@@ -422,21 +447,44 @@ $(function () {
         const region = detailValue(d, 'region');
         const kabupaten = detailValue(d, 'kabupaten');
         const kecamatan = detailValue(d, 'kecamatan');
+        const desa = detailValue(d, 'desa');
         const location = [kecamatan, kabupaten].filter(Boolean).join(', ') || region || 'Lokasi belum tersedia';
         const point = coordinates(d);
         const mapUrl = point ? `https://www.openstreetmap.org/?mlat=${point.lat}&mlon=${point.lon}#map=16/${point.lat}/${point.lon}` : '';
-        const stages = [
+        const offerStages = [
             ['Penawaran 1', 'penawaran_1'], ['Nego 1', 'nego_1'],
             ['Penawaran 2', 'penawaran_2'], ['Nego 2', 'nego_2'],
             ['Penawaran 3', 'penawaran_3'], ['Nego 3', 'nego_3'],
         ];
-        const timeline = stages.map(([label, key]) => {
+        const offerDate = key => key.startsWith('nego_')
+            ? detailValue(d, `tanggal_${key}`, `tgl_${key}`, `tanggal_negosiasi_${key.slice(-1)}`, `tgl_negosiasi_${key.slice(-1)}`)
+            : detailValue(d, `tanggal_${key}`, `tgl_${key}`);
+        const hasOffers = offerStages.some(([, key]) =>
+            (d[key] !== null && d[key] !== undefined && d[key] !== '') || fmtStageDate(offerDate(key)) !== null);
+        const rebuildStages = [
+            ['Negosiasi', fmtStageDate(detailValue(d, 'proses_negosiasi_at', 'tgl_negosiasi', 'tanggal_negosiasi'))],
+            ['BAK', fmtStageDate(d.tgl_bak_baru)],
+            ['PKS/BAK ke Owner', fmtStageDate(detailValue(d, 'proses_pks_owner_at', 'tgl_pksbak_ke_owner', 'tgl_pks_bak_ke_owner', 'tgl_pks_ke_owner'))],
+            ['PKS ke Legal', fmtStageDate(detailValue(d, 'proses_pks_legal_at', 'tgl_pks_ke_legal'))],
+            ['Budget', fmtStageDate(detailValue(d, 'proses_budget_at', 'tgl_budget'))],
+            ['Paid', fmtStageDate(detailValue(d, 'proses_paid_at', 'tgl_paid'))],
+        ];
+        const dropDate = fmtStageDate(detailValue(d, 'proses_drop_at', 'tgl_drop'));
+        if (dropDate) rebuildStages.push(['Drop', dropDate]);
+        const hasRebuildStages = rebuildStages.some(([, date]) => !!date);
+        const timeline = hasOffers ? offerStages.map(([label, key]) => {
             const amount = d[key];
-            const date = detailValue(d, `tanggal_${key}`);
+            const date = fmtStageDate(offerDate(key));
             const hasAmount = amount !== null && amount !== undefined && amount !== '';
             const recorded = hasAmount || date !== null;
-            return `<div class="sewa-detail-step${recorded ? ' is-recorded' : ''}"><strong>${label}</strong><span>${date ? fmtDate(date) : recorded ? 'Tanggal belum tersedia' : 'Belum tercatat'}</span>${hasAmount ? `<span>${esc(moneyLabel(amount))}</span>` : ''}</div>`;
-        }).join('');
+            return `<div class="sewa-detail-step${recorded ? ' is-recorded' : ''}"><strong>${label}</strong><span>${date || (recorded ? 'Tanggal belum tersedia' : 'Belum tercatat')}</span>${hasAmount ? `<span>${esc(moneyLabel(amount))}</span>` : ''}</div>`;
+        }).join('') : hasRebuildStages ? rebuildStages.map(([label, date]) =>
+            `<div class="sewa-detail-step${date ? ' is-recorded' : ''}"><strong>${label}</strong><span>${date || 'Belum tercatat'}</span></div>`
+        ).join('') : '';
+        const timelineDescription = hasOffers
+            ? 'Tahap mengikuti nilai dan tanggal Penawaran/Nego dari Excel.'
+            : hasRebuildStages ? 'Tahap mengikuti tanggal proses pada workbook Rebuild.'
+                : 'Belum ada tanggal atau nilai tahap proses pada unggahan ini.';
         const chipClass = value => {
             if (!value) return ' is-neutral';
             if (/off\s*air|non.?operational|non.?aktif|dismantle|unlock|relokasi/i.test(String(value))) return ' is-danger';
@@ -449,7 +497,7 @@ $(function () {
 
         return `
         <div class="sewa-detail-intro">
-            <div><div class="sewa-detail-site">${esc(d.site_code)}</div><div class="sewa-detail-name">${esc(d.site_name)}</div><div class="sewa-detail-muted">${sewaIcon('pin', 'green')} ${esc(location)}</div></div>
+            <div class="sewa-detail-intro-site">${sewaIcon('tower')}<div><div class="sewa-detail-site">${esc(d.site_code)}</div><div class="sewa-detail-name">${esc(d.site_name)}</div><div class="sewa-detail-muted">${sewaIcon('pin', 'green')} ${esc(location)}</div></div></div>
             <span class="sewa-detail-chip${chipClass(statusSite)}">${esc(statusSite || 'Status site belum tersedia')}</span>
         </div>
         <div class="sewa-detail-stats">
@@ -480,6 +528,7 @@ $(function () {
                     <dl class="sewa-detail-fields mt-3">
                         ${detailField('Alamat Lengkap', address, true)}${detailField('Region', region)}
                         ${detailField('Kabupaten / Kota', kabupaten)}${detailField('Kecamatan', kecamatan)}
+                        ${detailField('Desa / Kelurahan', desa)}
                         ${detailField('Koordinat', point ? `${point.lat}, ${point.lon}` : null, true)}
                     </dl>
                     ${point ? `<a class="btn btn-sm btn-outline-primary mt-2" href="${mapUrl}" target="_blank" rel="noopener noreferrer">Lihat di Maps ↗</a>` : ''}
@@ -491,7 +540,7 @@ $(function () {
                 </dl></section>
             </div>
         </div>
-        <section class="sewa-detail-card mt-3"><div class="sewa-detail-card-head"><h3>${sewaIcon('clock', 'amber')} Proses Perpanjangan</h3></div><div class="sewa-detail-muted">Tahap berwarna menandakan tanggal atau nilai penawaran/negosiasi sudah tercatat di Excel.</div><div class="sewa-detail-timeline">${timeline}</div>
+        <section class="sewa-detail-card mt-3"><div class="sewa-detail-card-head"><h3>${sewaIcon('clock', 'amber')} Proses Perpanjangan</h3></div><div class="sewa-detail-muted">${timelineDescription}</div>${timeline ? `<div class="sewa-detail-timeline" style="--sewa-step-count:${hasOffers ? 6 : rebuildStages.length}">${timeline}</div>` : ''}
             <details class="sewa-detail-extra"><summary>Dokumen & proses</summary><dl class="sewa-detail-fields">
                 ${detailField('Nomor BAK Baru', d.no_bak_baru)}${detailField('Tanggal BAK Baru', fmtDate(d.tgl_bak_baru))}
                 ${detailField('Nomor SIP', d.no_sip)}${detailField('Tanggal Terima SIP', fmtDate(d.tgl_terima_sip))}
