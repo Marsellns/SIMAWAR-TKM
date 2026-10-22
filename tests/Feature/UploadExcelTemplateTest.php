@@ -61,7 +61,9 @@ class UploadExcelTemplateTest extends TestCase
 
         $headers = InfrastructureUploadTemplate::headers('sewa-lahan');
         $values = ['Site ID' => 'NEW-001', 'Site Name' => 'New Site', 'Tahun Renewal' => 2026,
-            'No PKS Baru' => 'PKS-001', 'Harga Baru' => 125000];
+            'No PKS Baru' => 'PKS-001', 'Harga Baru' => 125000,
+            'Penawaran 1' => 925000000, 'Tanggal Penawaran 1' => '2026-07-12',
+            'Nego 1' => 900000000, 'Tanggal Nego 1' => '2026-07-28'];
         $this->uploadInfrastructure('sewa-lahan', $headers, $values);
         $values['Harga Baru'] = 150000;
         $this->uploadInfrastructure('sewa-lahan', $headers, $values);
@@ -69,6 +71,10 @@ class UploadExcelTemplateTest extends TestCase
         $this->assertDatabaseCount('sewa_lahan_renewals', 2);
         $this->assertDatabaseHas('sewa_lahan_renewals', ['site_code' => 'OLD-001']);
         $this->assertDatabaseHas('sewa_lahan_renewals', ['site_code' => 'NEW-001', 'harga_baru' => 150000]);
+        $this->assertDatabaseHas('sewa_lahan_renewals', ['site_code' => 'NEW-001', 'penawaran_1' => 925000000, 'nego_1' => 900000000]);
+        $details = json_decode(DB::table('sewa_lahan_renewals')->where('site_code', 'NEW-001')->value('source_details'), true);
+        $this->assertSame('2026-07-12', $details['tanggal_penawaran_1']);
+        $this->assertSame('2026-07-28', $details['tanggal_nego_1']);
     }
 
     public function test_combat_template_upload_preserves_existing_sites(): void
@@ -281,3 +287,4 @@ class UploadExcelTemplateTest extends TestCase
         }
     }
 }
+
