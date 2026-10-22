@@ -50,6 +50,25 @@ class SewaLahanRenewalImport extends BaseDatasetImport
                 else unset($source[$key]);
             }
         }
+        // Workbook Rebuild mencatat alur operasional, bukan enam nominal
+        // penawaran. Simpan tanggalnya secara terpisah untuk timeline adaptif.
+        $rebuildDates = [
+            'proses_negosiasi_at' => ['tgl_negosiasi', 'tanggal_negosiasi'],
+            'proses_pks_owner_at' => ['tgl_pksbak_ke_owner', 'tgl_pks_bak_ke_owner', 'tgl_pks_ke_owner'],
+            'proses_pks_legal_at' => ['tgl_pks_ke_legal'],
+            'proses_budget_at' => ['tgl_budget'],
+            'proses_paid_at' => ['tgl_paid'],
+            'proses_drop_at' => ['tgl_drop'],
+        ];
+        foreach ($rebuildDates as $key => $aliases) {
+            $date = null;
+            foreach ($aliases as $alias) {
+                $date = $this->parseDate($source[$alias] ?? null);
+                if ($date !== null) break;
+            }
+            if ($date !== null) $source[$key] = $date;
+            else unset($source[$key]);
+        }
         $row = new Collection($source);
         $siteCode = $this->cleanText($row['site_id'] ?? null);
 
