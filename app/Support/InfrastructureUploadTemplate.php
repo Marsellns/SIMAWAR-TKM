@@ -17,7 +17,9 @@ final class InfrastructureUploadTemplate
                 'Site ID', 'Site Name', 'Tahun Renewal', 'Status Dokumen', 'Status Perpanjangan',
                 'No PKS Baru', 'Start Date Baru', 'End Date Baru', 'Harga Baru', 'Total Harga Baru',
                 'No BAK Baru', 'Tgl BAK Baru', 'No SIP', 'Tgl Terima SIP',
-                'Penawaran 1', 'Nego 1', 'Penawaran 2', 'Nego 2', 'Penawaran 3', 'Nego 3',
+                'Penawaran 1', 'Tanggal Penawaran 1', 'Nego 1', 'Tanggal Nego 1',
+                'Penawaran 2', 'Tanggal Penawaran 2', 'Nego 2', 'Tanggal Nego 2',
+                'Penawaran 3', 'Tanggal Penawaran 3', 'Nego 3', 'Tanggal Nego 3',
                 'No PKS Lama', 'Start Date Lama', 'End Date Lama', 'Harga Lama',
                 'Keterangan', 'Update By', 'Tgl Update',
             ],
@@ -67,3 +69,4 @@ final class InfrastructureUploadTemplate
         return $headers;
     }
 }
+
