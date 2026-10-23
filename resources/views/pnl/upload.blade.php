@@ -38,7 +38,7 @@
                 </div>
                 <div class="d-flex flex-wrap gap-2">
                     <button type="submit" class="btn btn-brand btn-sm">Upload Excel</button>
-                    <a href="{{ route('pnl.template') }}" class="btn btn-outline-primary btn-sm">Template Excel</a>
+                    <a href="{{ route('pnl.template') }}" class="btn btn-success btn-sm">Template Excel</a>
                     <a href="{{ route('pnl.index') }}" class="btn btn-outline-secondary btn-sm">← Kembali</a>
                 </div>
             </form>

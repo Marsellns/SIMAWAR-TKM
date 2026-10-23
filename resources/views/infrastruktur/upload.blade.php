@@ -18,7 +18,7 @@
    <small class="text-body-secondary d-block mt-2">Maksimal 50 MB. Gunakan format kolom dataset yang tersedia.</small>
    <div class="mt-3 d-flex gap-2">
     <button class="btn btn-brand" type="submit">Upload dan simpan</button>
-    <a class="btn btn-outline-primary" href="{{ route('infrastruktur.upload.template', $dataset) }}">Template Excel</a>
+    <a class="btn btn-success" href="{{ route('infrastruktur.upload.template', $dataset) }}">Template Excel</a>
     <a class="btn btn-outline-secondary" href="{{ route('infrastruktur.'.$dataset.'.index') }}">Batal</a>
    </div>
   </form>

@@ -39,7 +39,7 @@
             @endrole
 
             {{-- Download Excel --}}
-            <a href="{{ route('electricity.centralized.bongkar-rampung-mandiri.export-excel') }}" class="btn btn-sm btn-outline-brand ms-auto d-inline-flex align-items-center gap-1 text-nowrap">
+            <a href="{{ route('electricity.centralized.bongkar-rampung-mandiri.export-excel') }}" class="btn btn-sm btn-success ms-auto d-inline-flex align-items-center gap-1 text-nowrap">
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16"><path d="M.5 9.9a.5.5 0 0 1 .5.1v2.5A1.5 1.5 0 0 0 2.5 14h11a1.5 1.5 0 0 0 1.5-1.5V10a.5.5 0 0 1 1 0v2.5a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 0 12.5V10a.5.5 0 0 1 .5-.1"/><path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"/></svg>
                 Excel
             </a>

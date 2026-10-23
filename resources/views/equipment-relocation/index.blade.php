@@ -41,7 +41,7 @@
             @include('operations.actions', ['dataset' => 'inventory', 'entryLabel' => 'Tambah / Upload Inventaris'])
 
             <a
-                class="btn-secondary d-inline-flex align-items-center gap-1 text-nowrap"
+                class="btn-secondary er-excel-download d-inline-flex align-items-center gap-1 text-nowrap"
                 href="{{ route('equipment-relocation.export-excel') }}"
             >
                 <svg class="er-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m-5-5 5 5 5-5M4 20h16"/></svg>
