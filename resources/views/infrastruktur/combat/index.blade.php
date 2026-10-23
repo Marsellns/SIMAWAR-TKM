@@ -101,6 +101,7 @@
 @endsection
 
 @push('styles')
+<link rel="stylesheet" href="{{ asset('css/infrastructure-site-map.css') }}">
 <style>
     #combat-table tbody tr { cursor: pointer; }
     #detailModal .combat-detail-dialog { width: min(1180px, calc(100vw - 2rem)); max-width: none; }
@@ -171,8 +172,6 @@
     .combat-detail-history th { color: var(--bs-secondary-color); font-size: .77rem; text-transform: uppercase; letter-spacing: .03em; }
     .combat-detail-history td, .combat-detail-history th { padding: .65rem .4rem; border-bottom: 1px solid var(--bs-border-color); vertical-align: top; }
     .combat-detail-history tr:last-child td { border: 0; }
-    .combat-detail-map { min-height: 148px; display: grid; place-items: center; padding: 1rem; text-align: center; border-radius: .6rem; background: linear-gradient(125deg, #e8f1f9, #def5ec); color: #1e293b; }
-    .combat-detail-map .combat-detail-muted { color: #475569; }
     .combat-detail-muted { color: var(--bs-secondary-color); font-size: .84rem; }
     .combat-detail-extra summary { cursor: pointer; font-size: .9rem; font-weight: 650; }
     .combat-detail-edit { background: var(--bs-body-bg); padding: 1rem; border: 1px solid var(--bs-border-color); border-radius: .75rem; }
@@ -191,6 +190,7 @@
 
 @push('scripts')
 <script src="{{ asset('js/infrastructure-stage-duration.js') }}"></script>
+<script src="{{ asset('js/infrastructure-site-map.js') }}"></script>
 <script>
 $(function () {
     const isAdmin = {{ auth()->user()->hasRole('admin') ? 'true' : 'false' }};
@@ -453,17 +453,6 @@ $(function () {
             ? { lat, lon } : null;
     }
 
-    function mapsDirectionsUrl(point, address, city) {
-        const street = String(address ?? '').trim();
-        const destination = point
-            ? `${point.lat},${point.lon}`
-            : !street || /^[-–—]+$/.test(street) ? '' : [street, city, 'Indonesia'].filter(Boolean).join(', ');
-        if (!destination) return '';
-        const url = new URL('https://www.google.com/maps/dir/');
-        url.searchParams.set('api', '1');
-        url.searchParams.set('destination', destination);
-        return url.toString();
-    }
     function currentStage(d) {
         const status = String(d.status_dokumen || d.status_perpanjangan || '').trim();
         const code = status.match(/^([A-L])\./i)?.[1]?.toUpperCase();
@@ -518,7 +507,6 @@ $(function () {
         const location = [detailValue(d, 'kabupaten', 'kota', 'area'), detailValue(d, 'region')].filter(Boolean).join(', ') || 'Lokasi belum tercatat';
         const address = detailValue(d, 'address', 'alamat');
         const point = coordinates(d);
-        const mapUrl = mapsDirectionsUrl(point, address, detailValue(d, 'kabupaten', 'kota', 'area'));
         const years = [...new Set(history.map(item => Number(item.year)).filter(Number.isFinite))].sort((a, b) => a - b);
         const yearRange = years.length > 1 ? `${years[0]} – ${years[years.length - 1]}` : d.tahun_justi_dirnet || '-';
         const renewalCount = Math.max(0, years.length - 1);
@@ -527,8 +515,6 @@ $(function () {
         const renewalNote = renewalPattern ? `Pola: ${esc(renewalPattern)}` : 'Dihitung dari riwayat tahun';
         const statusTone = /off\s*air|non.?operational|dismantle|relokasi/i.test(String(statusSite || '')) ? 'is-danger' : /on\s*air|active/i.test(String(statusSite || '')) ? 'is-success' : '';
         const editButton = d.edit_url ? `<button type="button" class="btn btn-sm btn-outline-secondary" data-combat-edit data-url="${esc(d.edit_url)}">${combatIcon('edit')} Edit</button>` : '';
-        const mapButton = mapUrl ? `<a class="btn btn-sm btn-outline-primary" href="${esc(mapUrl)}" target="_blank" rel="noopener noreferrer">Rute dari posisi saya ↗</a>` : '';
-        const mapContent = `<div><div class="mb-2">${combatIcon('pin', 'rose')}</div><strong>${mapUrl ? 'Lokasi site siap dibuka' : 'Lokasi site belum tersedia'}</strong><div class="combat-detail-muted mt-1">${mapUrl ? point ? `Koordinat: ${point.lat}, ${point.lon}` : `Berdasarkan alamat: ${esc(address)}` : 'Alamat dan koordinat site belum tercatat'}</div>${mapUrl ? `<div class="mt-2">${mapButton}</div><div class="combat-detail-muted mt-2">Google Maps menggunakan lokasi perangkat sebagai titik awal jika tersedia.</div>` : ''}</div>`;
         const info = `<dl class="combat-detail-fields">
             ${detailField('Site ID', d.site_code)}${detailField('Region', detailValue(d, 'region'))}
             ${detailField('Site Name', d.site_name)}${detailField('Kabupaten / Kota', detailValue(d, 'kabupaten', 'kota', 'area'))}
@@ -538,7 +524,7 @@ $(function () {
             ${detailField('NOP', detailValue(d, 'nop'))}${detailField('Longitude', point?.lon)}
             ${detailField('TP / Vendor', detailValue(d, 'tp', 'tp_vendor', 'tp_v'))}${detailField('Status Combat', statusCombat)}
         </dl>`;
-        const locationBody = `<div class="combat-detail-map">${mapContent}</div><dl class="combat-detail-fields mt-3">${detailField('Alamat Lengkap', address, true)}${detailField('Region', detailValue(d, 'region'))}${detailField('Kabupaten / Kota', detailValue(d, 'kabupaten', 'kota', 'area'))}${detailField('Height Combat', detailValue(d, 'height_combat_m', 'height_combat'))}${detailField('Height RF', detailValue(d, 'height_rf'))}${detailField('Date Connect', fmtDate(detailValue(d, 'date_connect')))}</dl>`;
+        const locationBody = `${infrastructureSiteMap.render(point, address, detailValue(d, 'kabupaten', 'kota', 'area'))}<dl class="combat-detail-fields mt-3">${detailField('Alamat Lengkap', address, true)}${detailField('Region', detailValue(d, 'region'))}${detailField('Kabupaten / Kota', detailValue(d, 'kabupaten', 'kota', 'area'))}${detailField('Height Combat', detailValue(d, 'height_combat_m', 'height_combat'))}${detailField('Height RF', detailValue(d, 'height_rf'))}${detailField('Date Connect', fmtDate(detailValue(d, 'date_connect')))}</dl>`;
         const documents = `<dl class="combat-detail-fields">
             ${detailField('Status Dokumen', d.status_dokumen)}${detailField('Mulai Tahap Proses', fmtDate(d.process_started_at))}
             ${detailField('Status Perpanjangan', d.status_perpanjangan)}${detailField('Process Aging', d.process_aging_days == null ? null : `${d.process_aging_days} hari`)}

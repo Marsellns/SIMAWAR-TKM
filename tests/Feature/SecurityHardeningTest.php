@@ -73,6 +73,21 @@ class SecurityHardeningTest extends TestCase
         $this->actingAs($viewer)->getJson('/api/dashboard/periods')->assertOk();
     }
 
+    public function test_site_map_permissions_apply_only_to_sewa_lahan_and_combat_pages(): void
+    {
+        $viewer = $this->approvedUserWithRole('viewer');
+
+        foreach (['infrastruktur.sewa-lahan.index', 'infrastruktur.combat.index'] as $routeName) {
+            $response = $this->actingAs($viewer)->get(route($routeName))->assertOk();
+            $this->assertStringContainsString('geolocation=(self)', $response->headers->get('Permissions-Policy'));
+            $this->assertStringContainsString('frame-src https://maps.google.com https://www.google.com', $response->headers->get('Content-Security-Policy'));
+        }
+
+        $dashboard = $this->get(route('dashboard'))->assertOk();
+        $this->assertStringContainsString('geolocation=()', $dashboard->headers->get('Permissions-Policy'));
+        $this->assertStringNotContainsString('frame-src https://maps.google.com', $dashboard->headers->get('Content-Security-Policy'));
+    }
+
     public function test_presales_documents_are_stored_on_the_private_disk(): void
     {
         Storage::fake('private');
