@@ -453,6 +453,8 @@ const infrastructureDrilldownEscape = function (value) {
     }
     return $('<div>').text(String(value)).html();
 };
+const infrastructureSourceDisplayValue = (key, value) =>
+    window.infrastructureStageDuration?.formatSourceDate(key, value) ?? value;
 
 /**
  * Render diagram batang performa untuk satu site. Filter berada di dalam
@@ -583,7 +585,7 @@ window.showInfrastructureRowDetail = function (row, scope, title) {
         ['Sisa Hari', row.days_remaining === null || row.days_remaining === undefined ? '—' : row.days_remaining],
         ['Mulai Tahap Proses', row.process_started_at], ['Aging Proses (hari)', row.process_aging_days],
         ['No PKS Baru', row.no_pks_baru], ['Total Harga Baru', row.total_harga_baru]
-    ].concat(Object.entries(row.source_details || {}).filter(([key]) => !key.startsWith('_')).map(([key, value]) => [key.replaceAll('_', ' '), value]));
+    ].concat(Object.entries(row.source_details || {}).filter(([key]) => !key.startsWith('_')).map(([key, value]) => [key.replaceAll('_', ' '), infrastructureSourceDisplayValue(key, value)]));
     const cells = entries
         .filter(([, value]) => value !== null && value !== undefined && value !== '')
         .map(([key, value]) => `<tr><th class="w-25">${infrastructureDrilldownEscape(key)}</th><td>${infrastructureDrilldownEscape(value)}</td></tr>`)
@@ -677,7 +679,7 @@ window.openInfrastructureDrilldown = function (scope, filterField, filterValue, 
                     ['Total Harga Baru', row.total_harga_baru],
                     ['Mulai Tahap Proses', row.process_started_at],
                     ['Aging Proses (hari)', row.process_aging_days]
-                ].concat(Object.entries(row.source_details || {}))
+                ].concat(Object.entries(row.source_details || {}).map(([key, value]) => [key, infrastructureSourceDisplayValue(key, value)]))
                     .filter(([key, value]) => !key.startsWith('_') && value !== null && value !== '' && !/^(rev|cost|pnl|revenue|margin|profit|tracy|payload|jan|feb|mar|apr|mei|may|jun|jul|aug|agu|sep|okt|oct|nov|des|dec)|_202[0-9]|-(25|26)/i.test(key));
                 if (!entries.length) return '';
                 const cells = entries.map(([key, value]) => `<div><span class="text-body-secondary">${infrastructureDrilldownEscape(key.replaceAll('_', ' '))}:</span> ${infrastructureDrilldownEscape(value)}</div>`).join('');

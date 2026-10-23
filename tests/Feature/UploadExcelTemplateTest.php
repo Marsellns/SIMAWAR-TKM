@@ -54,6 +54,22 @@ class UploadExcelTemplateTest extends TestCase
         $this->assertContains('harga_per_kwh', HeadingRowFormatter::format($inbuildingHeaders));
     }
 
+    public function test_infrastructure_templates_expose_source_dates_as_excel_date_columns(): void
+    {
+        $this->actingAs($this->userWithRole('admin'));
+
+        foreach (['combat' => ['Start Sewa', 'End Sewa', 'Tanggal BAK', 'Tgl PKS ke Legal'],
+            'sewa-lahan' => ['Tgl BAK Baru', 'Tgl PKS/BAK ke Owner', 'Tgl PKS ke Legal']] as $dataset => $dateHeaders) {
+            $sheet = $this->downloadSheet(route('infrastruktur.upload.template', $dataset));
+            $headers = InfrastructureUploadTemplate::headers($dataset);
+            foreach ($dateHeaders as $header) {
+                $column = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex(array_search($header, $headers, true) + 1);
+                $firstDataRow = InfrastructureUploadTemplate::headingRow($dataset) + 1;
+                $this->assertSame('dd mmm yyyy', $sheet->getStyle($column.$firstDataRow)->getNumberFormat()->getFormatCode());
+            }
+        }
+    }
+
     public function test_infrastructure_template_upload_adds_a_site_and_can_update_it_without_erasing_other_sites(): void
     {
         $this->actingAs($this->userWithRole('admin'));
@@ -63,7 +79,8 @@ class UploadExcelTemplateTest extends TestCase
         $values = ['Site ID' => 'NEW-001', 'Site Name' => 'New Site', 'Tahun Renewal' => 2026,
             'No PKS Baru' => 'PKS-001', 'Harga Baru' => 125000,
             'Penawaran 1' => 925000000, 'Tanggal Penawaran 1' => '2026-07-12',
-            'Nego 1' => 900000000, 'Tanggal Nego 1' => '2026-07-28'];
+            'Nego 1' => 900000000, 'Tanggal Nego 1' => '2026-07-28',
+            'Tgl PKS ke Legal' => 45834];
         $this->uploadInfrastructure('sewa-lahan', $headers, $values);
         $values['Harga Baru'] = 150000;
         $this->uploadInfrastructure('sewa-lahan', $headers, $values);
@@ -75,6 +92,7 @@ class UploadExcelTemplateTest extends TestCase
         $details = json_decode(DB::table('sewa_lahan_renewals')->where('site_code', 'NEW-001')->value('source_details'), true);
         $this->assertSame('2026-07-12', $details['tanggal_penawaran_1']);
         $this->assertSame('2026-07-28', $details['tanggal_nego_1']);
+        $this->assertSame('2025-06-26', $details['proses_pks_legal_at']);
     }
 
     public function test_combat_template_upload_preserves_existing_sites(): void
@@ -86,6 +104,8 @@ class UploadExcelTemplateTest extends TestCase
             'Site ID' => 'NEW-001', 'Site Name' => 'New Combat Site',
             'Tahun Justi Dirnet' => 2026, 'Harga Baru' => 100000,
             'Total Harga Baru' => 250000, 'Revenue Jan 2026' => 500000,
+            'Start Sewa' => 45420, 'End Sewa' => 45784,
+            'Tanggal BAK' => 45821, 'Tgl PKS ke Legal' => 45834,
         ]);
 
         $this->assertDatabaseCount('combat_sites', 2);
@@ -94,6 +114,9 @@ class UploadExcelTemplateTest extends TestCase
             'site_code' => 'NEW-001', 'harga_baru' => 100000,
             'total_harga_baru' => 250000, 'revenue_jan_2026' => 500000,
         ]);
+        $details = json_decode(DB::table('combat_sites')->where('site_code', 'NEW-001')->value('source_details'), true);
+        $this->assertSame(45420, $details['database']['start_sewa']);
+        $this->assertSame(45834, $details['database']['tgl_pks_ke_legal']);
     }
 
     public function test_remaining_infrastructure_templates_store_their_module_fields(): void
@@ -287,4 +310,3 @@ class UploadExcelTemplateTest extends TestCase
         }
     }
 }
-

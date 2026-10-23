@@ -123,6 +123,7 @@
 @endpush
 
 @push('scripts')
+<script src="{{ asset('js/infrastructure-stage-duration.js') }}"></script>
 <script src="https://code.highcharts.com/highcharts.js"></script>
 <script src="https://code.highcharts.com/modules/accessibility.js"></script>
 <script>
@@ -374,7 +375,7 @@ $(function () {
                     if (value === null || value === '') return;
                     const field = $('<div>').addClass('col-12 col-md-6 col-xl-4');
                     field.append($('<div>').addClass('small text-muted').text(labels[key] || key.replaceAll('_', ' ')));
-                    field.append($('<div>').addClass('text-break').text(String(value)));
+                    field.append($('<div>').addClass('text-break').text(String(infrastructureStageDuration.formatSourceDate(key, value))));
                     fields.append(field);
                 });
                 section.append(source.append(fields));

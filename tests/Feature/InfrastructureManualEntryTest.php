@@ -73,6 +73,21 @@ class InfrastructureManualEntryTest extends TestCase
         $this->assertDatabaseCount('site_monthly_metrics', 0);
     }
 
+    public function test_combat_manual_source_dates_are_validated_and_stored_as_dates(): void
+    {
+        $this->actingAs($this->admin());
+        $sourceDates = ['start_sewa' => '2024-05-08', 'end_sewa' => '2025-05-07',
+            'tanggal_bak' => '2025-06-13', 'tgl_pks_ke_legal' => '2025-06-26'];
+        $this->post(route('infrastruktur.manual.store', 'combat'), [
+            'site_code' => 'DATE001', 'source_details' => $sourceDates,
+        ])->assertSessionHasNoErrors()->assertRedirect();
+        $this->assertEquals($sourceDates, array_intersect_key(CombatSite::firstOrFail()->source_details, $sourceDates));
+
+        $this->postJson(route('infrastruktur.manual.store', 'combat'), [
+            'site_code' => 'DATE002', 'source_details' => ['start_sewa' => '45784'],
+        ])->assertUnprocessable()->assertJsonValidationErrors('source_details.start_sewa');
+    }
+
     public function test_repeated_create_is_rejected_without_overwriting_and_distinct_contracts_are_allowed(): void
     {
         $this->actingAs($this->admin());

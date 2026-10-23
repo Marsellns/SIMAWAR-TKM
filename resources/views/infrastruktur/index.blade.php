@@ -83,6 +83,7 @@
 @endsection
 
 @push('scripts')
+<script src="{{ asset('js/infrastructure-stage-duration.js') }}"></script>
 <script>
 $(function () {
     const tabs = Array.from(document.querySelectorAll('#infra-tabs [data-infra-tab]'));

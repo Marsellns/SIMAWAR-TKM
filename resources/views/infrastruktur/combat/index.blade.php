@@ -156,7 +156,7 @@
     .combat-detail-field dt { font-size: .8rem; color: var(--bs-secondary-color); font-weight: 500; }
     .combat-detail-field dd { margin: .2rem 0 0; font-size: .9rem; font-weight: 650; overflow-wrap: anywhere; }
     .combat-detail-field.is-wide { grid-column: 1 / -1; }
-    .combat-detail-timeline { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); margin-bottom: 1rem; }
+    .combat-detail-timeline { display: grid; grid-template-columns: repeat(var(--combat-step-count, 6), minmax(0, 1fr)); margin-bottom: 1rem; }
     .combat-detail-step { position: relative; padding-top: 1.8rem; text-align: center; font-size: .8rem; color: var(--bs-secondary-color); min-width: 0; }
     .combat-detail-step::before { content: ''; position: absolute; top: .2rem; left: calc(50% - .38rem); width: .76rem; height: .76rem; border-radius: 50%; background: #cbd5e1; z-index: 1; }
     .combat-detail-step::after { content: ''; position: absolute; top: .53rem; left: 50%; width: 100%; height: 2px; background: #cbd5e1; }
@@ -166,6 +166,7 @@
     .combat-detail-step.is-recorded::before { background: #10b981; }
     .combat-detail-step strong { display: block; overflow-wrap: anywhere; }
     .combat-detail-step span { display: block; margin-top: .25rem; }
+    .combat-detail-step .combat-detail-duration { color: var(--bs-body-color); font-weight: 600; }
     .combat-detail-history { width: 100%; font-size: .86rem; }
     .combat-detail-history th { color: var(--bs-secondary-color); font-size: .77rem; text-transform: uppercase; letter-spacing: .03em; }
     .combat-detail-history td, .combat-detail-history th { padding: .65rem .4rem; border-bottom: 1px solid var(--bs-border-color); vertical-align: top; }
@@ -189,6 +190,7 @@
 @endpush
 
 @push('scripts')
+<script src="{{ asset('js/infrastructure-stage-duration.js') }}"></script>
 <script>
 $(function () {
     const isAdmin = {{ auth()->user()->hasRole('admin') ? 'true' : 'false' }};
@@ -389,6 +391,7 @@ $(function () {
         'no', 'aksi', 'site_id', 'site_code', 'site_name', 'tahun_justi_dirnet', 'renewal_cycle', 'renewal_pattern',
         'status_dokumen', 'status', 'status_perpanjangan', 'nomor_pks_baru', 'no_pks_baru',
         'periode_awal_baru', 'start_date_baru', 'periode_akhir_baru', 'end_date_baru',
+        'aging_days', 'lama_proses_saat_ini_hari', 'process_aging_days',
         'harga_baru', 'total_harga_baru', 'penawaran_1', 'nego_1', 'penawaran_2', 'nego_2',
         'penawaran_3', 'nego_3', 'nomor_pks_existing', 'no_pks_lama', 'periode_awal_existing',
         'start_date_lama', 'periode_akhir_existing', 'end_date_lama', 'harga_lama', 'total_harga_existing',
@@ -397,7 +400,6 @@ $(function () {
         'latitude', 'longitude', 'longtitude', 'lat', 'lon', 'lng', 'height_combat', 'height_combat_m',
         'height_rf', 'date_connect', 'status_justifikasi', 'justifikasi'
     ]);
-
     function renderSourceDetails(d) {
         const details = sourceDetails(d);
         const rows = Object.entries(details)
@@ -412,7 +414,10 @@ $(function () {
                 if (KNOWN_COMBAT_KEYS.has(cleanKey)) return false;
                 return true;
             })
-            .map(([key, value]) => detailField(key.replaceAll('_', ' '), value))
+            .map(([key, value]) => {
+                const displayValue = infrastructureStageDuration.formatSourceDate(key, value);
+                return detailField(key.replaceAll('_', ' '), displayValue);
+            })
             .join('');
         return rows ? `<details class="combat-detail-card combat-detail-extra"><summary class="combat-detail-card-head">Kolom tambahan dari data Combat</summary><div class="combat-detail-card-body"><dl class="combat-detail-fields">${rows}</dl></div></details>` : '';
     }
@@ -467,7 +472,9 @@ $(function () {
         if (['D', 'E', 'F'].includes(code)) return 'PKS';
         if (['G', 'H'].includes(code)) return 'Pending PKS';
         if (['I', 'J'].includes(code)) return 'Finance';
+        if (['K', 'L'].includes(code)) return 'Drop';
         if (/paid|bayar/i.test(status)) return 'Paid';
+        if (/drop|dismantle|relokasi/i.test(status)) return 'Drop';
         if (/financ|reimburse|budget/i.test(status)) return 'Finance';
         if (/pending.*pks|pks.*pending/i.test(status)) return 'Pending PKS';
         if (/pks|legal/i.test(status)) return 'PKS';
@@ -477,18 +484,27 @@ $(function () {
     }
     function renderTimeline(d) {
         const current = currentStage(d);
+        const currentLabel = current === 'PKS' ? 'PKS/BAK ke Owner'
+            : current === 'Pending PKS' ? 'PKS ke Legal' : current;
         const stages = [
-            ['Negosiasi', 'tgl_negosiasi', 'tanggal_negosiasi'],
-            ['BAK', 'tgl_bak_baru', 'tgl_bak'],
-            ['PKS', 'tgl_pks_ke_owner', 'tgl_pksbak_ke_owner', 'tgl_pks_ke_legal'],
-            ['Pending PKS', 'tgl_pending_pks'],
-            ['Finance', 'tgl_budget', 'tgl_finance'],
-            ['Paid', 'tgl_paid'],
+            ['Negosiasi', 'proses_negosiasi_at', 'tgl_negosiasi', 'tanggal_negosiasi'],
+            ['BAK', 'tgl_bak_baru', 'tanggal_bak', 'tgl_bak'],
+            ['PKS/BAK ke Owner', 'proses_pks_owner_at', 'tgl_pks_bak_ke_owner', 'tgl_pks_ke_owner', 'tgl_pksbak_ke_owner'],
+            ['PKS ke Legal', 'proses_pks_legal_at', 'tgl_pks_ke_legal', 'tgl_pending_pks'],
+            ['Finance', 'proses_budget_at', 'tgl_budget', 'tgl_finance'],
+            ['Paid', 'proses_paid_at', 'tgl_paid'],
         ];
-        return `<div class="combat-detail-timeline">${stages.map(([label, ...keys]) => {
-            const date = detailValue(d, ...keys);
-            return `<div class="combat-detail-step${label === current ? ' is-current' : date ? ' is-recorded' : ''}"><strong>${label}</strong><span>${date ? fmtDate(date) : label === current ? 'Tahap saat ini' : ''}</span></div>`;
-        }).join('')}</div><div class="combat-detail-muted">${current ? `Tahap saat ini: ${esc(current)}. ` : 'Tahap proses belum tercatat. '}Tanggal hanya ditampilkan jika tersedia pada data Combat.</div>`;
+        if (detailValue(d, 'proses_drop_at', 'tgl_drop') || current === 'Drop') {
+            stages.push(['Drop', 'proses_drop_at', 'tgl_drop']);
+        }
+        const timelineStages = stages.map(([label, ...keys]) => [label, detailValue(d, ...keys)]);
+        return `<div class="combat-detail-timeline" style="--combat-step-count:${stages.length}">${timelineStages.map(([label, date], index) => {
+            const formattedDate = infrastructureStageDuration.formatDate(date);
+            const duration = infrastructureStageDuration.forStage(timelineStages, index, { terminal: label === 'Paid' || label === 'Drop' });
+            const durationMarkup = duration
+                ? `<span class="combat-detail-duration">${esc(duration.label)}</span>` : '';
+            return `<div class="combat-detail-step${label === currentLabel ? ' is-current' : formattedDate ? ' is-recorded' : ''}"><strong>${label}</strong><span>${formattedDate || (label === currentLabel ? 'Tahap saat ini' : '')}</span>${durationMarkup}</div>`;
+        }).join('')}</div><div class="combat-detail-muted">${current ? `Tahap saat ini: ${esc(current)}. ` : 'Tahap proses belum tercatat. '}Lama tahap dihitung sampai tahap berikutnya atau hari ini.</div>`;
     }
     function renderHistory(history, d) {
         const rows = history.length ? history : [{ id: d.id, year: d.tahun_justi_dirnet, site_name: d.site_name, status_justifikasi: detailValue(d, 'status_justifikasi', 'justifikasi'), status_dokumen: d.status_dokumen }];

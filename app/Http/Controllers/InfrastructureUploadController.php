@@ -19,8 +19,11 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 use Maatwebsite\Excel\Concerns\FromArray;
+use Maatwebsite\Excel\Concerns\WithColumnFormatting;
+use Maatwebsite\Excel\Concerns\WithStyles;
 use Maatwebsite\Excel\Concerns\WithTitle;
 use Maatwebsite\Excel\Facades\Excel;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
 class InfrastructureUploadController extends Controller
 {
@@ -50,7 +53,7 @@ class InfrastructureUploadController extends Controller
             ? [$headers]
             : [[self::DATASETS[$dataset]['label'].' - Template Upload'], $headers];
 
-        return Excel::download(new class($rows, $dataset) implements FromArray, WithTitle
+        return Excel::download(new class($rows, $dataset) implements FromArray, WithTitle, WithColumnFormatting, WithStyles
         {
             public function __construct(private readonly array $rows, private readonly string $dataset) {}
 
@@ -62,6 +65,22 @@ class InfrastructureUploadController extends Controller
             public function title(): string
             {
                 return $this->dataset === 'combat' ? 'DATABASE' : 'Data';
+            }
+
+            public function columnFormats(): array
+            {
+                return InfrastructureUploadTemplate::dateColumns($this->dataset);
+            }
+
+            public function styles(Worksheet $sheet): array
+            {
+                $firstDataRow = InfrastructureUploadTemplate::headingRow($this->dataset) + 1;
+                foreach ($this->columnFormats() as $column => $format) {
+                    $sheet->getStyle("{$column}{$firstDataRow}:{$column}250")
+                        ->getNumberFormat()->setFormatCode($format);
+                }
+
+                return [];
             }
         }, 'template-'.str_replace('-', '_', $dataset).'.xlsx');
     }
