@@ -5,6 +5,7 @@ use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Admin\UserApprovalController;
 use App\Http\Controllers\BapssController;
 use App\Http\Controllers\CombatSiteController;
+use App\Http\Controllers\InfrastructureSiteImageController;
 use App\Http\Controllers\DashboardMasterController;
 use App\Http\Controllers\DashboardViewController;
 use App\Http\Controllers\DataSiteUnlockController;
@@ -150,6 +151,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/', [InfrastructureDashboardController::class, 'index'])->name('index');
         Route::get('/dashboard-data', [InfrastructureDashboardController::class, 'data'])->name('dashboard.data');
         Route::get('/dashboard-details', [InfrastructureDashboardController::class, 'details'])->name('dashboard.details');
+        Route::get('/site-image', [InfrastructureSiteImageController::class, 'show'])->name('site-image.show');
+        Route::post('/site-image', [InfrastructureSiteImageController::class, 'store'])->name('site-image.store')->middleware('role:admin');
+        Route::delete('/site-image', [InfrastructureSiteImageController::class, 'destroy'])->name('site-image.destroy')->middleware('role:admin');
         Route::post('{dataset}/manual', [\App\Http\Controllers\InfrastructureManualEntryController::class, 'store'])
             ->whereIn('dataset', array_keys(\App\Support\InfrastructureManualEntry::DATASETS))
             ->name('manual.store')->middleware('role:admin');

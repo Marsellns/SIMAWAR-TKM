@@ -187,6 +187,7 @@
     </div>
 </div>
 @push('styles')
+<link rel="stylesheet" href="{{ asset('css/infrastructure-site-hero.css') }}">
 <style>
     .infra-module-tabs { display: flex; flex-wrap: wrap; max-width: 100%; }
     .infra-module-tabs .enterprise-tab-btn { white-space: nowrap; }
@@ -214,6 +215,15 @@
 </style>
 @endpush
 @push('scripts')
+<script>
+window.infrastructureSiteHeroConfig = {
+    photoUrl: @json(route('infrastruktur.site-image.show')),
+    uploadUrl: @json(route('infrastruktur.site-image.store')),
+    csrfToken: @json(csrf_token()),
+    canUpload: {{ auth()->user()->hasRole('admin') ? 'true' : 'false' }},
+};
+</script>
+<script src="{{ asset('js/infrastructure-site-hero.js') }}"></script>
 <script src="https://code.highcharts.com/highcharts.js"></script>
 <script src="https://code.highcharts.com/modules/accessibility.js"></script>
 <script>
@@ -590,7 +600,9 @@ window.showInfrastructureRowDetail = function (row, scope, title) {
         .filter(([, value]) => value !== null && value !== undefined && value !== '')
         .map(([key, value]) => `<tr><th class="w-25">${infrastructureDrilldownEscape(key)}</th><td>${infrastructureDrilldownEscape(value)}</td></tr>`)
         .join('');
-    detail.html(`<div class="d-flex justify-content-between align-items-center mb-3"><h6 class="mb-0">Informasi lengkap ${infrastructureDrilldownEscape(row.site_code || '')}</h6><a class="btn btn-sm btn-outline-secondary" href="${sourceUrl}">Buka sumber data</a></div><div class="table-responsive"><table class="table table-bordered table-sm mb-0">${cells}</table></div><div class="mt-3" id="infra-detail-site-performance"></div>`);
+    const heroKey = row.site_code || row.site_name || row.id || source;
+    detail.html(`<div class="infrastructure-site-hero infra-drilldown-site-hero" data-site-hero="${encodeURIComponent(String(heroKey))}" data-site-photo-code="${encodeURIComponent(String(row.site_code || ''))}"><div class="infra-drilldown-site-code">${infrastructureDrilldownEscape(row.site_code)}</div><div class="infra-drilldown-site-name">${infrastructureDrilldownEscape(row.site_name)}</div><div class="infra-drilldown-site-meta">${infrastructureDrilldownEscape(source)} · ${infrastructureDrilldownEscape(row.source_details?.kabupaten || row.source_details?.kota || row.source_details?.area || row.owner)}</div><span class="infra-drilldown-site-status">${infrastructureDrilldownEscape(row.status_site || 'Status belum tercatat')}</span></div><div class="d-flex justify-content-between align-items-center mb-3"><h6 class="mb-0">Informasi lengkap ${infrastructureDrilldownEscape(row.site_code || '')}</h6><a class="btn btn-sm btn-outline-secondary" href="${sourceUrl}">Buka sumber data</a></div><div class="table-responsive"><table class="table table-bordered table-sm mb-0">${cells}</table></div><div class="mt-3" id="infra-detail-site-performance"></div>`);
+    infrastructureSiteHero.apply(detail[0]);
     window.renderInfrastructureSitePerformance(document.getElementById('infra-detail-site-performance'), row.performance);
     list.addClass('d-none');
     detail.removeClass('d-none');

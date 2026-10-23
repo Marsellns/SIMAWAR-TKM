@@ -112,6 +112,7 @@
     #detailModal .modal-body { padding: 1.2rem; }
     .combat-detail { color: var(--bs-body-color); font-size: .95rem; line-height: 1.5; }
     .combat-detail-hero { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; padding: .2rem .1rem 1.2rem; }
+    .combat-detail-hero.infrastructure-site-hero { padding: 1.2rem 1.35rem; margin-bottom: 1.2rem; }
     .combat-detail-identity { display: flex; align-items: center; gap: 1rem; min-width: 0; }
     .combat-detail-logo { width: 3.5rem; height: 3.5rem; border-radius: 1rem; background: #fff1f2; color: #e11d48; display: grid; place-items: center; flex: none; }
     .combat-detail-logo .combat-detail-icon { width: 2.25rem; height: 2.25rem; background: transparent; color: inherit; }
@@ -539,7 +540,7 @@ $(function () {
         </dl>`;
         const negotiation = `<dl class="combat-detail-fields">${[1, 2, 3].map(i => `${detailField(`Penawaran ${i}`, moneyLabel(d[`penawaran_${i}`]))}${detailField(`Nego ${i}`, moneyLabel(d[`nego_${i}`]))}`).join('')}</dl>`;
         return `<div class="combat-detail">
-            <div class="combat-detail-hero"><div class="combat-detail-identity"><div class="combat-detail-logo">${combatIcon('tower')}</div><div><span class="combat-detail-eyebrow">COMBAT SITE</span><h2 class="combat-detail-name">${esc(d.site_code)} · ${esc(d.site_name)}</h2><div class="combat-detail-meta"><span>${combatIcon('pin')} ${esc(location)}</span><span>${combatIcon('list')} ${esc(detailValue(d, 'nop'))}</span></div></div></div><div class="combat-detail-badges"><span class="combat-detail-badge ${statusTone}">${esc(statusSite || 'Status site belum tercatat')}</span><span class="combat-detail-badge ${justifikasi ? 'is-warning' : ''}">${esc(justifikasi || 'Justifikasi belum tercatat')}</span></div></div>
+            <div class="combat-detail-hero infrastructure-site-hero" data-site-hero="${encodeURIComponent(String(d.site_code || d.site_name || d.id || 'site'))}" data-site-photo-code="${encodeURIComponent(String(d.site_code || ''))}"><div class="combat-detail-identity"><div class="combat-detail-logo">${combatIcon('tower')}</div><div><span class="combat-detail-eyebrow">COMBAT SITE</span><h2 class="combat-detail-name">${esc(d.site_code)} · ${esc(d.site_name)}</h2><div class="combat-detail-meta"><span>${combatIcon('pin')} ${esc(location)}</span><span>${combatIcon('list')} ${esc(detailValue(d, 'nop'))}</span></div></div></div><div class="combat-detail-badges"><span class="combat-detail-badge ${statusTone}">${esc(statusSite || 'Status site belum tercatat')}</span><span class="combat-detail-badge ${justifikasi ? 'is-warning' : ''}">${esc(justifikasi || 'Justifikasi belum tercatat')}</span></div></div>
             <div class="combat-detail-stats">
                 <div class="combat-detail-stat">${combatIcon('calendar')}<div><div class="combat-detail-stat-label">Tahun Combat</div><div class="combat-detail-stat-value">${esc(yearRange)}</div><div class="combat-detail-stat-note">${years.length ? `${years.length} tahun tercatat` : 'Tahun belum tercatat'}</div></div></div>
                 <div class="combat-detail-stat">${combatIcon('renewal', 'green')}<div><div class="combat-detail-stat-label">Jumlah Renewal</div><div class="combat-detail-stat-value">${esc(renewalLabel)}</div><div class="combat-detail-stat-note">${renewalNote}</div></div></div>
@@ -569,6 +570,7 @@ $(function () {
         const { site, history } = currentDetail;
         $('#detail-title').text(`Detail Combat ${site.site_code || ''}`);
         $('#detail-body').html(`${message ? `<div class="alert alert-success" role="status">${esc(message)}</div>` : ''}${renderDetail(site, history)}`);
+        infrastructureSiteHero.apply(document.getElementById('detail-body'));
         window.renderInfrastructureSitePerformance(
             document.querySelector('#detail-body [data-site-performance]'),
             site.performance

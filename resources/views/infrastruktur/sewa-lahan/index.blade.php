@@ -505,7 +505,7 @@ $(function () {
             : '';
 
         return `
-        <div class="sewa-detail-intro">
+        <div class="sewa-detail-intro infrastructure-site-hero" data-site-hero="${encodeURIComponent(String(d.site_code || d.site_name || d.id || 'site'))}" data-site-photo-code="${encodeURIComponent(String(d.site_code || ''))}">
             <div class="sewa-detail-intro-site">${sewaIcon('tower')}<div><div class="sewa-detail-site">${esc(d.site_code)}</div><div class="sewa-detail-name">${esc(d.site_name)}</div><div class="sewa-detail-muted">${sewaIcon('pin', 'green')} ${esc(location)}</div></div></div>
             <span class="sewa-detail-chip${chipClass(statusSite)}">${esc(statusSite || 'Status site belum tersedia')}</span>
         </div>
@@ -569,6 +569,7 @@ $(function () {
     function showCurrentDetail() {
         if (!currentDetailRow) return;
         $('#detail-body').html(renderDetail(currentDetailRow));
+        infrastructureSiteHero.apply(document.getElementById('detail-body'));
         window.renderInfrastructureSitePerformance(
             document.querySelector('#detail-body [data-site-performance]'),
             currentDetailRow.performance
@@ -644,6 +645,7 @@ $(function () {
         currentDetailRow = row;
         $('#detail-title').text(row.site_code ?? '');
         $('#detail-body').html(renderDetail(row));
+        infrastructureSiteHero.apply(document.getElementById('detail-body'));
         $('#detailModal').one('shown.bs.modal', function () {
             showCurrentDetail();
         });
