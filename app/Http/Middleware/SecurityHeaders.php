@@ -17,7 +17,8 @@ class SecurityHeaders
         $response->headers->set('X-Frame-Options', 'SAMEORIGIN');
         $response->headers->set('X-XSS-Protection', '1; mode=block');
         $response->headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');
-        $response->headers->set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+        $siteMapPage = $request->routeIs('infrastruktur.sewa-lahan.index', 'infrastruktur.combat.index');
+        $response->headers->set('Permissions-Policy', 'camera=(), microphone=(), geolocation='.($siteMapPage ? '(self)' : '()'));
         $response->headers->remove('X-Powered-By');
 
         $csp = "default-src 'self'; " .
@@ -30,6 +31,9 @@ class SecurityHeaders
             "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net https://cdn.datatables.net; " .
             "font-src 'self' data: https://fonts.gstatic.com; " .
             "connect-src 'self';";
+        if ($siteMapPage) {
+            $csp .= ' frame-src https://maps.google.com https://www.google.com;';
+        }
 
         $response->headers->set('Content-Security-Policy', $csp);
 

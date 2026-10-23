@@ -95,6 +95,7 @@
 @endsection
 
 @push('styles')
+<link rel="stylesheet" href="{{ asset('css/infrastructure-site-map.css') }}">
 <style>
     #sewa-table tbody tr { cursor: pointer; }
     #detailModal .sewa-detail-dialog { max-width: min(1180px, calc(100vw - 2rem)); }
@@ -143,9 +144,6 @@
     .sewa-detail-field dt { color: var(--bs-secondary-color); font-size: .74rem; font-weight: 500; }
     .sewa-detail-field dd { margin: .2rem 0 0; font-size: .84rem; font-weight: 650; overflow-wrap: anywhere; }
     .sewa-detail-wide { grid-column: 1 / -1; }
-    .sewa-detail-map { min-height: 180px; border-radius: 10px; background: linear-gradient(135deg, #e8f1f7, #e3f5ed); display: grid; place-items: center; text-align: center; padding: 1rem; overflow: hidden; }
-    .sewa-detail-map-mark { color: #e11d48; font-size: 2rem; line-height: 1; }
-    .sewa-detail-map-actions { margin-top: .5rem; display: flex; flex-wrap: wrap; gap: .5rem; justify-content: center; }
     .sewa-detail-timeline { display: grid; grid-template-columns: repeat(var(--sewa-step-count, 6), minmax(0, 1fr)); gap: .4rem; margin-top: .7rem; }
     .sewa-detail-step { position: relative; min-width: 0; padding-top: 2rem; text-align: center; color: var(--bs-secondary-color); font-size: .75rem; }
     .sewa-detail-step::before { content: ''; position: absolute; top: .4rem; left: calc(50% - .42rem); width: .84rem; height: .84rem; border-radius: 50%; background: #cbd5e1; z-index: 1; }
@@ -181,6 +179,7 @@
 
 @push('scripts')
 <script src="{{ asset('js/infrastructure-stage-duration.js') }}"></script>
+<script src="{{ asset('js/infrastructure-site-map.js') }}"></script>
 <script>
 $(function () {
     const isAdmin = {{ auth()->user()->hasRole('admin') ? 'true' : 'false' }};
@@ -404,22 +403,10 @@ $(function () {
         const latValue = detailValue(d, 'latitude', 'lat');
         const lonValue = detailValue(d, 'longitude', 'longtitude', 'lng', 'lon');
         if (latValue === null || lonValue === null) return null;
-        const lat = Number(latValue);
-        const lon = Number(lonValue);
+        const lat = Number(String(latValue).replace(',', '.'));
+        const lon = Number(String(lonValue).replace(',', '.'));
         return Number.isFinite(lat) && Number.isFinite(lon) && Math.abs(lat) <= 90 && Math.abs(lon) <= 180
             && (lat !== 0 || lon !== 0) ? { lat, lon } : null;
-    }
-
-    function mapsDirectionsUrl(point, address, city) {
-        const street = String(address ?? '').trim();
-        const destination = point
-            ? `${point.lat},${point.lon}`
-            : !street || /^[-–—]+$/.test(street) ? '' : [street, city, 'Indonesia'].filter(Boolean).join(', ');
-        if (!destination) return '';
-        const url = new URL('https://www.google.com/maps/dir/');
-        url.searchParams.set('api', '1');
-        url.searchParams.set('destination', destination);
-        return url.toString();
     }
 
     function renderSourceDetails(d) {
@@ -467,7 +454,6 @@ $(function () {
         const desa = detailValue(d, 'desa');
         const location = [kecamatan, kabupaten].filter(Boolean).join(', ') || region || 'Lokasi belum tersedia';
         const point = coordinates(d);
-        const mapUrl = mapsDirectionsUrl(point, address, kabupaten);
         const offerStages = [
             ['Penawaran 1', 'penawaran_1'], ['Nego 1', 'nego_1'],
             ['Penawaran 2', 'penawaran_2'], ['Nego 2', 'nego_2'],
@@ -519,7 +505,7 @@ $(function () {
             : '';
 
         return `
-        <div class="sewa-detail-intro">
+        <div class="sewa-detail-intro infrastructure-site-hero" data-site-hero="${encodeURIComponent(String(d.site_code || d.site_name || d.id || 'site'))}" data-site-photo-code="${encodeURIComponent(String(d.site_code || ''))}">
             <div class="sewa-detail-intro-site">${sewaIcon('tower')}<div><div class="sewa-detail-site">${esc(d.site_code)}</div><div class="sewa-detail-name">${esc(d.site_name)}</div><div class="sewa-detail-muted">${sewaIcon('pin', 'green')} ${esc(location)}</div></div></div>
             <span class="sewa-detail-chip${chipClass(statusSite)}">${esc(statusSite || 'Status site belum tersedia')}</span>
         </div>
@@ -547,7 +533,7 @@ $(function () {
             </div>
             <div class="sewa-detail-column">
                 <section class="sewa-detail-card"><div class="sewa-detail-card-head"><h3>${sewaIcon('pin', 'green')} Lokasi Site</h3></div>
-                    <div class="sewa-detail-map"><div><div class="sewa-detail-map-mark" aria-hidden="true">${sewaIcon('pin', 'green')}</div><strong>${mapUrl ? 'Lokasi site siap dibuka' : 'Lokasi site belum tersedia'}</strong><div class="sewa-detail-muted">${mapUrl ? point ? `Koordinat: ${point.lat}, ${point.lon}` : `Berdasarkan alamat: ${esc(address)}` : 'Alamat dan koordinat site belum tercatat'}</div>${mapUrl ? `<div class="sewa-detail-map-actions"><a class="btn btn-sm btn-outline-primary" href="${esc(mapUrl)}" target="_blank" rel="noopener noreferrer">Rute dari posisi saya ↗</a></div><div class="sewa-detail-muted mt-2">Google Maps menggunakan lokasi perangkat sebagai titik awal jika tersedia.</div>` : ''}</div></div>
+                    ${infrastructureSiteMap.render(point, address, kabupaten)}
                     <dl class="sewa-detail-fields mt-3">
                         ${detailField('Alamat Lengkap', address, true)}${detailField('Region', region)}
                         ${detailField('Kabupaten / Kota', kabupaten)}${detailField('Kecamatan', kecamatan)}
@@ -583,6 +569,7 @@ $(function () {
     function showCurrentDetail() {
         if (!currentDetailRow) return;
         $('#detail-body').html(renderDetail(currentDetailRow));
+        infrastructureSiteHero.apply(document.getElementById('detail-body'));
         window.renderInfrastructureSitePerformance(
             document.querySelector('#detail-body [data-site-performance]'),
             currentDetailRow.performance
@@ -658,6 +645,7 @@ $(function () {
         currentDetailRow = row;
         $('#detail-title').text(row.site_code ?? '');
         $('#detail-body').html(renderDetail(row));
+        infrastructureSiteHero.apply(document.getElementById('detail-body'));
         $('#detailModal').one('shown.bs.modal', function () {
             showCurrentDetail();
         });

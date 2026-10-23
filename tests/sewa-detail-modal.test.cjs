@@ -18,6 +18,7 @@ const $ = () => ({
 });
 const context = vm.createContext({ $, Date, Intl, URL });
 vm.runInContext(fs.readFileSync(path.join(__dirname, '../public/js/infrastructure-stage-duration.js'), 'utf8'), context);
+vm.runInContext(fs.readFileSync(path.join(__dirname, '../public/js/infrastructure-site-map.js'), 'utf8'), context);
 vm.runInContext(view.slice(start, end) + '\nthis.renderDetail = renderDetail;', context);
 
 test('Rebuild dates produce an operational timeline and accept the source longitude spelling', () => {
@@ -31,8 +32,10 @@ test('Rebuild dates produce an operational timeline and accept the source longit
     });
     assert.match(html, /PKS\/BAK ke Owner/);
     assert.match(html, /Negosiasi/);
-    assert.match(html, /Rute dari posisi saya/);
+    assert.match(html, /data-infrastructure-site-map-link/);
+    assert.match(html, /<svg[^>]*>.*<path d="M4 12h16M13 5l7 7-7 7"/s);
     assert.match(html, /destination=-6\.49%2C107\.45/);
+    assert.doesNotMatch(html, /Lokasi site siap dibuka|Koordinat:|Google Maps menggunakan lokasi perangkat/);
     assert.doesNotMatch(html, /1970/);
     assert.doesNotMatch(html, /<strong>Penawaran 1<\/strong>/);
 });
@@ -42,11 +45,19 @@ test('address-only site still offers directions, while missing location does not
         site_code: 'DPK019',
         source_details: { address: 'Jl. Raya Gandul 22', kabupaten: 'KOTA DEPOK' },
     });
-    assert.match(addressOnly, /Rute dari posisi saya/);
+    assert.match(addressOnly, /data-infrastructure-site-map-link/);
     assert.match(addressOnly, /destination=Jl\.\+Raya\+Gandul\+22%2C\+KOTA\+DEPOK%2C\+Indonesia/);
 
     const missing = context.renderDetail({ site_code: 'NO-LOCATION', source_details: {} });
-    assert.doesNotMatch(missing, /Rute dari posisi saya/);
+    assert.doesNotMatch(missing, /data-infrastructure-site-map-link/);
+});
+
+test('decimal comma coordinates from a spreadsheet still locate the site', () => {
+    const html = context.renderDetail({
+        site_code: 'GEO-001',
+        source_details: { latitude: '-6,392497', longitude: '106,822832' },
+    });
+    assert.match(html, /destination=-6\.392497%2C106\.822832/);
 });
 
 test('template values and dates produce the offer timeline without inventing other stages', () => {

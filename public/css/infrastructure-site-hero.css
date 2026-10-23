@@ -1,0 +1,74 @@
+.infrastructure-site-hero {
+    position: relative;
+    isolation: isolate;
+    min-height: 142px;
+    padding: 1.2rem 1.35rem;
+    overflow: hidden;
+    border: 1px solid #d7e5ef;
+    border-radius: 14px;
+    background: #dcecf6;
+    color: #122238;
+}
+
+.infrastructure-site-hero::before,
+.infrastructure-site-hero::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+}
+
+.infrastructure-site-hero::before {
+    z-index: -2;
+    background-image: var(--infrastructure-site-hero-image);
+    background-position: center;
+    background-size: cover;
+}
+
+.infrastructure-site-hero::after {
+    z-index: -1;
+    background: linear-gradient(90deg, rgba(255, 255, 255, .97) 0%, rgba(255, 255, 255, .91) 28%, rgba(255, 255, 255, .54) 57%, rgba(255, 255, 255, .04) 100%);
+}
+
+.infrastructure-site-hero .sewa-detail-site,
+.infrastructure-site-hero .combat-detail-name { color: #122238; }
+
+.infrastructure-site-hero .sewa-detail-name,
+.infrastructure-site-hero .sewa-detail-muted,
+.infrastructure-site-hero .combat-detail-meta { color: #42546a; }
+
+.infrastructure-site-hero-controls {
+    position: absolute;
+    z-index: 1;
+    top: .55rem;
+    right: .55rem;
+    display: flex;
+    align-items: center;
+    gap: .3rem;
+}
+
+.infrastructure-site-hero-button {
+    padding: .2rem .5rem;
+    border: 1px solid #d8e3ec;
+    border-radius: .4rem;
+    background: rgba(255, 255, 255, .9);
+    color: #26405a;
+    font-size: .72rem;
+    font-weight: 650;
+}
+
+.infrastructure-site-hero-button:hover { background: #fff; }
+.infrastructure-site-hero-button:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; }
+.infrastructure-site-hero-button:disabled { opacity: .6; cursor: wait; }
+.infrastructure-site-hero-message { max-width: 180px; color: #9f1239; font-size: .72rem; font-weight: 600; }
+
+.infra-drilldown-site-hero { margin-bottom: 1rem; }
+.infra-drilldown-site-code { font-size: 1.4rem; font-weight: 800; line-height: 1.2; }
+.infra-drilldown-site-name { margin-top: .15rem; font-weight: 650; }
+.infra-drilldown-site-meta { margin-top: .25rem; color: #42546a; font-size: .85rem; }
+.infra-drilldown-site-status { display: inline-block; margin-top: .55rem; padding: .22rem .55rem; border-radius: 99px; background: #e9eef5; color: #37475b; font-size: .75rem; font-weight: 700; }
+
+@media (max-width: 575px) {
+    .infrastructure-site-hero { min-height: 156px; padding: 2.3rem 1rem 1rem; }
+    .infrastructure-site-hero::after { background: linear-gradient(90deg, rgba(255, 255, 255, .98), rgba(255, 255, 255, .8) 64%, rgba(255, 255, 255, .25)); }
+}

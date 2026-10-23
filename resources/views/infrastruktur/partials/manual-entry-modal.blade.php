@@ -39,8 +39,9 @@
                 @endif
                 @if (in_array($dataset, ['sewa-lahan', 'combat'], true))
                     <details class="mt-4" @if ($reopenManual) open @endif>
-                        <summary class="fw-semibold mb-3">Detail Site &amp; Proses</summary>
+                        <summary class="fw-semibold mb-3">Detail Site, Lokasi &amp; Proses</summary>
                         <p class="small text-body-secondary">Masa sewa, aging, tindak lanjut, dan prioritas dihitung otomatis dari tanggal dan status.</p>
+                        <p class="small text-body-secondary">Peta lokasi muncul otomatis jika Alamat Lengkap atau pasangan Latitude dan Longitude diisi.</p>
                         <div class="row g-3">
                             @foreach (\App\Support\InfrastructureManualEntry::sourceFields($dataset) as $key => $field)
                                 @include('infrastruktur.partials.manual-field', ['prefix' => 'source_details'])

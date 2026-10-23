@@ -57,13 +57,17 @@ class InfrastructureManualEntryTest extends TestCase
     {
         $this->actingAs($this->admin());
         foreach (['sewa-lahan' => SewaLahanRenewal::class, 'combat' => CombatSite::class] as $dataset => $model) {
-            $payload = ['site_code' => 'MAN002', 'source_details' => ['status' => 'On Air', 'nop' => 'BEKASI', 'ownership' => 'TP'],
+            $payload = ['site_code' => 'MAN002', 'source_details' => ['status' => 'On Air', 'nop' => 'BEKASI', 'ownership' => 'TP',
+                'alamat' => 'Jl. Margonda Raya 55, Depok', 'latitude' => '-6.392497', 'longitude' => '106.822832'],
                 'start_date_baru' => '2026-01-01', 'end_date_baru' => '2027-01-01',
                 'performance_year' => 2026, 'performance' => ['jan' => ['revenue' => 1500.25, 'cost' => 2000.50]]];
             $this->post(route('infrastruktur.manual.store', $dataset), $payload)->assertSessionHasNoErrors()->assertRedirect();
             $site = $model::firstOrFail();
             $this->assertSame('TP', $site->source_details['ownership']);
             $this->assertSame('On Air', $site->source_details['status']);
+            $this->assertSame('Jl. Margonda Raya 55, Depok', $site->source_details['alamat']);
+            $this->assertEquals(-6.392497, $site->source_details['latitude']);
+            $this->assertEquals(106.822832, $site->source_details['longitude']);
             $this->assertSame(-500.25, InfrastructureMetrics::sitePerformance($site)[0]['pnl']);
             $scope = $dataset === 'combat' ? 'combat' : 'sewa';
             $this->getJson(route('infrastruktur.dashboard.data', ['scope' => $scope]))->assertOk()->assertJsonPath('cards.unique_sites', 1);
@@ -86,6 +90,14 @@ class InfrastructureManualEntryTest extends TestCase
         $this->postJson(route('infrastruktur.manual.store', 'combat'), [
             'site_code' => 'DATE002', 'source_details' => ['start_sewa' => '45784'],
         ])->assertUnprocessable()->assertJsonValidationErrors('source_details.start_sewa');
+
+        $this->postJson(route('infrastruktur.manual.store', 'combat'), [
+            'site_code' => 'DATE003', 'source_details' => ['latitude' => '-91', 'longitude' => '106.822832'],
+        ])->assertUnprocessable()->assertJsonValidationErrors('source_details.latitude');
+
+        $this->postJson(route('infrastruktur.manual.store', 'combat'), [
+            'site_code' => 'DATE004', 'source_details' => ['latitude' => '-6.392497'],
+        ])->assertUnprocessable()->assertJsonValidationErrors('source_details.longitude');
     }
 
     public function test_repeated_create_is_rejected_without_overwriting_and_distinct_contracts_are_allowed(): void
