@@ -155,6 +155,7 @@
     .sewa-detail-step.is-recorded::before { background: #e11d48; box-shadow: 0 0 0 4px #ffe4e6; }
     .sewa-detail-step strong { display: block; font-size: .78rem; }
     .sewa-detail-step span { display: block; margin-top: .25rem; overflow-wrap: anywhere; }
+    .sewa-detail-step .sewa-detail-duration { color: var(--bs-body-color); font-weight: 600; }
     .sewa-detail-extra { margin-top: .9rem; }
     .sewa-detail-extra summary { cursor: pointer; font-weight: 650; }
     .sewa-detail-extra .sewa-detail-fields { margin-top: 1rem; }
@@ -179,6 +180,7 @@
 @endpush
 
 @push('scripts')
+<script src="{{ asset('js/infrastructure-stage-duration.js') }}"></script>
 <script>
 $(function () {
     const isAdmin = {{ auth()->user()->hasRole('admin') ? 'true' : 'false' }};
@@ -365,12 +367,12 @@ $(function () {
         'tgl_negosiasi_1', 'tgl_negosiasi_2', 'tgl_negosiasi_3',
         'proses_negosiasi_at', 'proses_pks_owner_at', 'proses_pks_legal_at',
         'proses_budget_at', 'proses_paid_at', 'proses_drop_at',
+        'aging_days', 'lama_proses_saat_ini_hari', 'process_aging_days',
         'nomor_pks_existing', 'no_pks_lama', 'periode_awal_existing', 'start_date_lama',
         'periode_akhir_existing', 'end_date_lama', 'harga_existing_th', 'harga_lama',
         'keterangan', 'update_by', 'tgl_update',
         'area', 'nop', 'ownership', 'vendor', 'tp', 'sitename', 'masa_sewath', 'masa_sewa_th'
     ]);
-
     function detailField(label, value, wide = false) {
         return `<div class="sewa-detail-field${wide ? ' sewa-detail-wide' : ''}"><dt>${esc(label)}</dt><dd>${esc(value)}</dd></div>`;
     }
@@ -420,7 +422,6 @@ $(function () {
         return url.toString();
     }
 
-
     function renderSourceDetails(d) {
         const details = d.source_details || {};
         const rows = Object.entries(details)
@@ -430,12 +431,16 @@ $(function () {
                 // yang dapat dibaca pengguna di modal detail.
                 if (typeof value === 'string' && value.trim().startsWith('=')) return false;
                 const cleanKey = key.toLowerCase().replace(/[\s\/\-]+/g, '_');
+                if (cleanKey === 'tahun' && String(value).trim() === String(d.tahun_renewal ?? '').trim()) return false;
                 if (isPnlKey(cleanKey)) return false;
                 if (['pks_status', 'status_masa_sewa', 'status_masa_sewa2', 'address', 'alamat', 'latitude', 'longitude', 'longtitude', 'lat', 'lon', 'lng', 'region', 'kabupaten', 'kecamatan', 'desa', 'total_harga_existing', 'tindak_lanjut', 'tgl_negosiasi', 'tanggal_negosiasi', 'tgl_pksbak_ke_owner', 'tgl_pks_bak_ke_owner', 'tgl_pks_ke_owner', 'tgl_pks_ke_legal', 'tgl_budget', 'tgl_paid', 'tgl_drop'].includes(cleanKey)) return false;
                 if (KNOWN_SEWA_KEYS.has(cleanKey)) return false;
                 return true;
             })
-            .map(([key, value]) => detailField(key.replaceAll('_', ' '), value))
+            .map(([key, value]) => {
+                const displayValue = infrastructureStageDuration.formatSourceDate(key, value);
+                return detailField(key.replaceAll('_', ' '), displayValue);
+            })
             .join('');
         return rows ? `<details class="sewa-detail-card sewa-detail-extra"><summary>Kolom tambahan dari sumber data</summary><dl class="sewa-detail-fields">${rows}</dl></details>` : '';
     }
@@ -471,32 +476,38 @@ $(function () {
         const offerDate = key => key.startsWith('nego_')
             ? detailValue(d, `tanggal_${key}`, `tgl_${key}`, `tanggal_negosiasi_${key.slice(-1)}`, `tgl_negosiasi_${key.slice(-1)}`)
             : detailValue(d, `tanggal_${key}`, `tgl_${key}`);
+        const offerTimelineStages = offerStages.map(([label, key]) => [label, offerDate(key)]);
         const hasOffers = offerStages.some(([, key]) =>
             (d[key] !== null && d[key] !== undefined && d[key] !== '') || fmtStageDate(offerDate(key)) !== null);
         const rebuildStages = [
-            ['Negosiasi', fmtStageDate(detailValue(d, 'proses_negosiasi_at', 'tgl_negosiasi', 'tanggal_negosiasi'))],
-            ['BAK', fmtStageDate(d.tgl_bak_baru)],
-            ['PKS/BAK ke Owner', fmtStageDate(detailValue(d, 'proses_pks_owner_at', 'tgl_pksbak_ke_owner', 'tgl_pks_bak_ke_owner', 'tgl_pks_ke_owner'))],
-            ['PKS ke Legal', fmtStageDate(detailValue(d, 'proses_pks_legal_at', 'tgl_pks_ke_legal'))],
-            ['Budget', fmtStageDate(detailValue(d, 'proses_budget_at', 'tgl_budget'))],
-            ['Paid', fmtStageDate(detailValue(d, 'proses_paid_at', 'tgl_paid'))],
+            ['Negosiasi', detailValue(d, 'proses_negosiasi_at', 'tgl_negosiasi', 'tanggal_negosiasi')],
+            ['BAK', d.tgl_bak_baru],
+            ['PKS/BAK ke Owner', detailValue(d, 'proses_pks_owner_at', 'tgl_pksbak_ke_owner', 'tgl_pks_bak_ke_owner', 'tgl_pks_ke_owner')],
+            ['PKS ke Legal', detailValue(d, 'proses_pks_legal_at', 'tgl_pks_ke_legal')],
+            ['Budget', detailValue(d, 'proses_budget_at', 'tgl_budget')],
+            ['Paid', detailValue(d, 'proses_paid_at', 'tgl_paid')],
         ];
-        const dropDate = fmtStageDate(detailValue(d, 'proses_drop_at', 'tgl_drop'));
-        if (dropDate) rebuildStages.push(['Drop', dropDate]);
-        const hasRebuildStages = rebuildStages.some(([, date]) => !!date);
-        const timeline = hasOffers ? offerStages.map(([label, key]) => {
+        const dropDate = detailValue(d, 'proses_drop_at', 'tgl_drop');
+        if (fmtStageDate(dropDate)) rebuildStages.push(['Drop', dropDate]);
+        const hasRebuildStages = rebuildStages.some(([, date]) => fmtStageDate(date) !== null);
+        const durationMarkup = (stages, index, terminal = false) => {
+            const duration = infrastructureStageDuration.forStage(stages, index, { terminal });
+            if (!duration) return '';
+            return `<span class="sewa-detail-duration">${esc(duration.label)}</span>`;
+        };
+        const timeline = hasOffers ? offerStages.map(([label, key], index) => {
             const amount = d[key];
             const date = fmtStageDate(offerDate(key));
             const hasAmount = amount !== null && amount !== undefined && amount !== '';
             const recorded = hasAmount || date !== null;
-            return `<div class="sewa-detail-step${recorded ? ' is-recorded' : ''}"><strong>${label}</strong><span>${date || (recorded ? 'Tanggal belum tersedia' : 'Belum tercatat')}</span>${hasAmount ? `<span>${esc(moneyLabel(amount))}</span>` : ''}</div>`;
-        }).join('') : hasRebuildStages ? rebuildStages.map(([label, date]) =>
-            `<div class="sewa-detail-step${date ? ' is-recorded' : ''}"><strong>${label}</strong><span>${date || 'Belum tercatat'}</span></div>`
+            return `<div class="sewa-detail-step${recorded ? ' is-recorded' : ''}"><strong>${label}</strong><span>${date || (recorded ? 'Tanggal belum tersedia' : 'Belum tercatat')}</span>${durationMarkup(offerTimelineStages, index)}${hasAmount ? `<span>${esc(moneyLabel(amount))}</span>` : ''}</div>`;
+        }).join('') : hasRebuildStages ? rebuildStages.map(([label, rawDate], index) =>
+            `<div class="sewa-detail-step${fmtStageDate(rawDate) ? ' is-recorded' : ''}"><strong>${label}</strong><span>${fmtStageDate(rawDate) || 'Belum tercatat'}</span>${durationMarkup(rebuildStages, index, label === 'Paid' || label === 'Drop')}</div>`
         ).join('') : '';
         const timelineDescription = hasOffers
-            ? 'Tahap mengikuti nilai dan tanggal Penawaran/Nego dari Excel.'
-            : hasRebuildStages ? 'Tahap mengikuti tanggal proses pada workbook Rebuild.'
-                : 'Belum ada tanggal atau nilai tahap proses pada unggahan ini.';
+            ? 'Tahap mengikuti nilai dan tanggal Penawaran/Nego yang tercatat. Lama tahap dihitung sampai tahap berikutnya atau hari ini.'
+            : hasRebuildStages ? 'Tahap mengikuti tanggal proses yang tercatat. Lama tahap dihitung sampai tahap berikutnya atau hari ini.'
+                : 'Belum ada tanggal atau nilai tahap proses yang tercatat.';
         const chipClass = value => {
             if (!value) return ' is-neutral';
             if (/off\s*air|non.?operational|non.?aktif|dismantle|unlock|relokasi/i.test(String(value))) return ' is-danger';
@@ -655,4 +666,3 @@ $(function () {
 });
 </script>
 @endpush
-
