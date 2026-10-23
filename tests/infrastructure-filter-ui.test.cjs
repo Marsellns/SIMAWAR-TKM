@@ -218,6 +218,7 @@ test('Site Telkomsel and Site TP retain ownership filters under the Sewa Lahan p
 test('changed inline browser scripts remain valid JavaScript after Blade values are rendered', () => {
     const bladeToJavaScript = source => source
         .replace(/@json\(route\('[^']+'\)\)/g, '"/generated-url"')
+        .replace(/@json\(csrf_token\(\)\)/g, '"generated-csrf-token"')
         .replace(/@json\(\\App\\Support\\LeaseStatus::[A-Z0-9_]+\)/g, '"status"')
         .replace(/\{\{\s*auth\(\)->user\(\)->hasRole\('admin'\)\s*\?\s*'true'\s*:\s*'false'\s*\}\}/g, 'true');
     const inlineScripts = file => [...read(file).matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)]
