@@ -2,17 +2,20 @@
 
 namespace App\Exports;
 
+use App\Exports\Concerns\HasReadableWorksheetLayout;
 use App\Models\ListrikPln;
 use Illuminate\Support\Enumerable;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithStyles;
-use Maatwebsite\Excel\Concerns\ShouldAutoSize;
+use Maatwebsite\Excel\Concerns\WithEvents;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-class ListrikPlnExport implements FromCollection, WithHeadings, WithMapping, WithStyles, ShouldAutoSize
+class ListrikPlnExport implements FromCollection, WithHeadings, WithMapping, WithStyles, WithEvents
 {
+    use HasReadableWorksheetLayout;
+
     public function __construct(
         private readonly ?int $tahun = null,
         private readonly ?int $bulan = null,

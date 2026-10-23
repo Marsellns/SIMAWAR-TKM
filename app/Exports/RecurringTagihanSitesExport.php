@@ -2,6 +2,7 @@
 
 namespace App\Exports;
 
+use App\Exports\Concerns\HasReadableWorksheetLayout;
 use App\Models\RecurringTagihanIpas;
 use Maatwebsite\Excel\Concerns\FromQuery;
 use Maatwebsite\Excel\Concerns\WithColumnWidths;
@@ -9,10 +10,13 @@ use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithStyles;
 use Maatwebsite\Excel\Concerns\WithTitle;
+use Maatwebsite\Excel\Concerns\WithEvents;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-class RecurringTagihanSitesExport implements FromQuery, WithColumnWidths, WithHeadings, WithMapping, WithStyles, WithTitle
+class RecurringTagihanSitesExport implements FromQuery, WithColumnWidths, WithHeadings, WithMapping, WithStyles, WithTitle, WithEvents
 {
+    use HasReadableWorksheetLayout;
+
     public function query()
     {
         return RecurringTagihanIpas::query()->orderBy('site_code');

@@ -2,13 +2,17 @@
 
 namespace App\Exports;
 
+use App\Exports\Concerns\HasReadableWorksheetLayout;
 use Illuminate\Database\Eloquent\Builder;
 use Maatwebsite\Excel\Concerns\FromQuery;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
+use Maatwebsite\Excel\Concerns\WithEvents;
 
-class PoVarcostExport implements FromQuery, WithHeadings, WithMapping
+class PoVarcostExport implements FromQuery, WithHeadings, WithMapping, WithEvents
 {
+    use HasReadableWorksheetLayout;
+
     public function __construct(private readonly Builder $query) {}
 
     public function query(): Builder

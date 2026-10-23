@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\Concerns\HasReadableWorksheetLayout;
 use App\Exports\RecurringTagihanSitesExport;
 use App\Imports\Datasets\BapssImport;
 use App\Imports\Datasets\CombatSiteImport;
@@ -22,6 +23,7 @@ use Maatwebsite\Excel\Concerns\FromArray;
 use Maatwebsite\Excel\Concerns\WithColumnFormatting;
 use Maatwebsite\Excel\Concerns\WithStyles;
 use Maatwebsite\Excel\Concerns\WithTitle;
+use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Facades\Excel;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
@@ -53,8 +55,9 @@ class InfrastructureUploadController extends Controller
             ? [$headers]
             : [[self::DATASETS[$dataset]['label'].' - Template Upload'], $headers];
 
-        return Excel::download(new class($rows, $dataset) implements FromArray, WithTitle, WithColumnFormatting, WithStyles
-        {
+        return Excel::download(new class($rows, $dataset) implements FromArray, WithTitle, WithColumnFormatting, WithStyles, WithEvents {
+            use HasReadableWorksheetLayout;
+
             public function __construct(private readonly array $rows, private readonly string $dataset) {}
 
             public function array(): array
@@ -125,8 +128,9 @@ class InfrastructureUploadController extends Controller
 
         array_unshift($rows, $definition['headers']);
 
-        return Excel::download(new class($rows) implements FromArray
-        {
+        return Excel::download(new class($rows) implements FromArray, WithEvents {
+            use HasReadableWorksheetLayout;
+
             public function __construct(private readonly array $rows) {}
 
             public function array(): array

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\Concerns\HasReadableWorksheetLayout;
 use App\Exports\BongkarRampungMandiriExport;
 use App\Imports\Electricity\CentralizedBongkarRampungImport;
 use App\Models\BongkarRampungMandiri;
@@ -12,6 +13,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 use Maatwebsite\Excel\Facades\Excel;
 use Maatwebsite\Excel\Concerns\FromArray;
+use Maatwebsite\Excel\Concerns\WithEvents;
 use Yajra\DataTables\Facades\DataTables;
 
 class ElectricityCentralizedBoramController extends Controller
@@ -32,7 +34,9 @@ class ElectricityCentralizedBoramController extends Controller
     public function template()
     {
         $headers = ['No', 'Aksi', 'ID Pelanggan', 'Site ID', 'Site Name', 'Alamat', 'Daya', 'Phasa', 'Golongan Tarif', 'NOP', 'No Surat Boram', 'Tgl Surat Boram', 'Mitra Boram', 'Created By', 'Tgl Update'];
-        return Excel::download(new class($headers) implements FromArray {
+        return Excel::download(new class($headers) implements FromArray, WithEvents {
+            use HasReadableWorksheetLayout;
+
             public function __construct(private readonly array $headers) {}
             public function array(): array { return [['Daftar_Site_Tidak_Aktif'], $this->headers]; }
         }, 'template-bongkar-rampung-centralized.xlsx');

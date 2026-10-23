@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\Concerns\HasReadableWorksheetLayout;
 use App\Imports\Electricity\ListrikPlnImport;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Facades\Excel;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
@@ -84,7 +86,9 @@ class ElectricityCentralizedController extends Controller
         $data = [['' => '', '' => '', '' => '', '' => '', '' => '', '' => '', '' => '', '' => '', '' => '', '' => '', '' => '', '' => '', '' => '', '' => '', '' => '']];
         $data[0] = $headers;
 
-        return Excel::download(new class($headers) implements \Maatwebsite\Excel\Concerns\FromArray, \Maatwebsite\Excel\Concerns\WithHeadings {
+        return Excel::download(new class($headers) implements \Maatwebsite\Excel\Concerns\FromArray, \Maatwebsite\Excel\Concerns\WithHeadings, WithEvents {
+            use HasReadableWorksheetLayout;
+
             protected $headings;
             public function __construct(array $headings) { $this->headings = $headings; }
             public function array(): array { return []; }

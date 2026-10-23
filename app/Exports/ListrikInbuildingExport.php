@@ -2,6 +2,7 @@
 
 namespace App\Exports;
 
+use App\Exports\Concerns\HasReadableWorksheetLayout;
 use App\Models\ListrikInbuilding;
 use Illuminate\Database\Eloquent\Builder;
 use Maatwebsite\Excel\Concerns\Exportable;
@@ -9,10 +10,12 @@ use Maatwebsite\Excel\Concerns\FromQuery;
 use Maatwebsite\Excel\Concerns\WithCustomChunkSize;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
+use Maatwebsite\Excel\Concerns\WithEvents;
 
-class ListrikInbuildingExport implements FromQuery, WithHeadings, WithMapping, WithCustomChunkSize
+class ListrikInbuildingExport implements FromQuery, WithHeadings, WithMapping, WithCustomChunkSize, WithEvents
 {
     use Exportable;
+    use HasReadableWorksheetLayout;
 
     public function chunkSize(): int
     {

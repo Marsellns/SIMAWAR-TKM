@@ -2,18 +2,20 @@
 
 namespace App\Exports;
 
+use App\Exports\Concerns\HasReadableWorksheetLayout;
 use App\Support\CombatSourceDetails;
 use App\Support\LeaseStatus;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\Exportable;
 use Maatwebsite\Excel\Concerns\FromCollection;
-use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
+use Maatwebsite\Excel\Concerns\WithEvents;
 
-class InfrastructureSiteAlertExport implements FromCollection, ShouldAutoSize, WithHeadings, WithMapping
+class InfrastructureSiteAlertExport implements FromCollection, WithHeadings, WithMapping, WithEvents
 {
     use Exportable;
+    use HasReadableWorksheetLayout;
 
     private int $rowNumber = 0;
 
