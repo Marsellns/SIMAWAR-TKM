@@ -403,8 +403,8 @@ $(function () {
         const latValue = detailValue(d, 'latitude', 'lat');
         const lonValue = detailValue(d, 'longitude', 'longtitude', 'lng', 'lon');
         if (latValue === null || lonValue === null) return null;
-        const lat = Number(latValue);
-        const lon = Number(lonValue);
+        const lat = Number(String(latValue).replace(',', '.'));
+        const lon = Number(String(lonValue).replace(',', '.'));
         return Number.isFinite(lat) && Number.isFinite(lon) && Math.abs(lat) <= 90 && Math.abs(lon) <= 180
             && (lat !== 0 || lon !== 0) ? { lat, lon } : null;
     }

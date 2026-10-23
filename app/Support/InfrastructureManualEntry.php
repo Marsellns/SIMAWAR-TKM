@@ -64,6 +64,9 @@ final class InfrastructureManualEntry
         $common = [
             'status' => ['Status Site', 'text', 100], 'nop' => ['NOP', 'text', 100],
             'ownership' => ['Ownership (Telkomsel / TP)', 'ownership', 100],
+            'alamat' => ['Alamat Lengkap untuk Peta', 'textarea', 10000],
+            'latitude' => ['Latitude', 'coordinate', null],
+            'longitude' => ['Longitude', 'coordinate', null],
         ];
 
         return $common + ($dataset === 'combat' ? [
@@ -74,7 +77,7 @@ final class InfrastructureManualEntry
             'tanggal_bak' => ['Tanggal BAK', 'date', null],
             'start_sewa' => ['Start Sewa', 'date', null], 'end_sewa' => ['End Sewa', 'date', null],
             'date_on_air' => ['Date on Air', 'date', null],
-        ] : ['area' => ['Area', 'text', 100], 'vendor' => ['Vendor', 'text', 100]]) + [
+        ] : ['area' => ['Area', 'text', 100], 'kabupaten' => ['Kabupaten / Kota', 'text', 100], 'vendor' => ['Vendor', 'text', 100]]) + [
             'tgl_negosiasi' => ['Tanggal Negosiasi', 'date', null], 'tgl_pks_bak_ke_owner' => ['Tanggal PKS / BAK ke Owner', 'date', null],
             'tgl_pks_ke_legal' => ['Tanggal PKS ke Legal', 'date', null], 'tgl_budget' => ['Tanggal Budget', 'date', null],
             'tgl_finance' => ['Tanggal Finance', 'date', null],

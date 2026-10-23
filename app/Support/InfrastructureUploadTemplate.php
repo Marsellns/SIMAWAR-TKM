@@ -17,6 +17,7 @@ final class InfrastructureUploadTemplate
             'combat' => self::combat(),
             'sewa-lahan' => [
                 'Site ID', 'Site Name', 'Tahun Renewal', 'Status Dokumen', 'Status Perpanjangan',
+                'Kabupaten', 'Alamat', 'Latitude', 'Longitude',
                 'No PKS Baru', 'Start Date Baru', 'End Date Baru', 'Harga Baru', 'Total Harga Baru',
                 'No BAK Baru', 'Tgl BAK Baru', 'No SIP', 'Tgl Terima SIP',
                 'Tgl Negosiasi', 'Tgl PKS/BAK ke Owner', 'Tgl PKS ke Legal',
@@ -71,6 +72,7 @@ final class InfrastructureUploadTemplate
     {
         $headers = [
             'Site ID', 'Site Name', 'Tahun Justi Dirnet', 'Status Dokumen', 'Status Perpanjangan',
+            'Kabupaten', 'Alamat', 'Latitude', 'Longitude',
             'No PKS Baru', 'Start Date Baru', 'End Date Baru', 'Harga Baru', 'Total Harga Baru',
             'Start Sewa', 'End Sewa', 'Date on Air', 'Tgl Negosiasi', 'Tanggal BAK',
             'Tgl PKS/BAK ke Owner', 'Tgl PKS ke Legal', 'Tgl Finance', 'Tgl Paid', 'Tgl Drop',

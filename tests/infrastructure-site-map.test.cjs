@@ -73,5 +73,16 @@ test('Combat and Sewa Lahan both render the shared map component', () => {
         assert.match(view, /js\/infrastructure-site-map\.js/);
         assert.match(view, /css\/infrastructure-site-map\.css/);
         assert.doesNotMatch(view, /Google Maps menggunakan lokasi perangkat sebagai titik awal/);
+
+        const start = view.indexOf('    function coordinates(d)');
+        const end = view.indexOf('    function ', start + 1);
+        assert.ok(start >= 0 && end > start);
+        const context = vm.createContext({
+            detailValue: (row, ...keys) => keys.map(key => row.source_details?.[key]).find(value => value != null) ?? null,
+        });
+        vm.runInContext(view.slice(start, end) + '\nthis.coordinates = coordinates;', context);
+        const point = context.coordinates({ source_details: { latitude: '-6,392497', longitude: '106,822832' } });
+        assert.equal(point.lat, -6.392497);
+        assert.equal(point.lon, 106.822832);
     }
 });

@@ -52,6 +52,14 @@ test('address-only site still offers directions, while missing location does not
     assert.doesNotMatch(missing, /data-infrastructure-site-map-link/);
 });
 
+test('decimal comma coordinates from a spreadsheet still locate the site', () => {
+    const html = context.renderDetail({
+        site_code: 'GEO-001',
+        source_details: { latitude: '-6,392497', longitude: '106,822832' },
+    });
+    assert.match(html, /destination=-6\.392497%2C106\.822832/);
+});
+
 test('template values and dates produce the offer timeline without inventing other stages', () => {
     const html = context.renderDetail({
         site_code: 'KRW008', penawaran_1: 925000000, nego_1: 900000000,

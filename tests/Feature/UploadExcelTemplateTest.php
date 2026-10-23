@@ -77,6 +77,7 @@ class UploadExcelTemplateTest extends TestCase
 
         $headers = InfrastructureUploadTemplate::headers('sewa-lahan');
         $values = ['Site ID' => 'NEW-001', 'Site Name' => 'New Site', 'Tahun Renewal' => 2026,
+            'Kabupaten' => 'KOTA DEPOK', 'Alamat' => 'Jl. Margonda Raya 55, Depok',
             'No PKS Baru' => 'PKS-001', 'Harga Baru' => 125000,
             'Penawaran 1' => 925000000, 'Tanggal Penawaran 1' => '2026-07-12',
             'Nego 1' => 900000000, 'Tanggal Nego 1' => '2026-07-28',
@@ -93,6 +94,8 @@ class UploadExcelTemplateTest extends TestCase
         $this->assertSame('2026-07-12', $details['tanggal_penawaran_1']);
         $this->assertSame('2026-07-28', $details['tanggal_nego_1']);
         $this->assertSame('2025-06-26', $details['proses_pks_legal_at']);
+        $this->assertSame('KOTA DEPOK', $details['kabupaten']);
+        $this->assertSame('Jl. Margonda Raya 55, Depok', $details['alamat']);
     }
 
     public function test_combat_template_upload_preserves_existing_sites(): void
@@ -106,6 +109,7 @@ class UploadExcelTemplateTest extends TestCase
             'Total Harga Baru' => 250000, 'Revenue Jan 2026' => 500000,
             'Start Sewa' => 45420, 'End Sewa' => 45784,
             'Tanggal BAK' => 45821, 'Tgl PKS ke Legal' => 45834,
+            'Latitude' => -6.392497, 'Longitude' => 106.822832,
         ]);
 
         $this->assertDatabaseCount('combat_sites', 2);
@@ -117,6 +121,8 @@ class UploadExcelTemplateTest extends TestCase
         $details = json_decode(DB::table('combat_sites')->where('site_code', 'NEW-001')->value('source_details'), true);
         $this->assertSame(45420, $details['database']['start_sewa']);
         $this->assertSame(45834, $details['database']['tgl_pks_ke_legal']);
+        $this->assertEquals(-6.392497, $details['database']['latitude']);
+        $this->assertEquals(106.822832, $details['database']['longitude']);
     }
 
     public function test_remaining_infrastructure_templates_store_their_module_fields(): void

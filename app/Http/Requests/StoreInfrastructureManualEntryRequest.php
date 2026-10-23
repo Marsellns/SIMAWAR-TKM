@@ -60,6 +60,8 @@ class StoreInfrastructureManualEntryRequest extends FormRequest
             $fields = InfrastructureManualEntry::sourceFields($dataset);
             $rules['source_details'] = ['nullable', 'array:'.implode(',', array_keys($fields))];
             $rules += $this->fieldRules($fields, 'source_details.');
+            $rules['source_details.latitude'][] = 'required_with:source_details.longitude';
+            $rules['source_details.longitude'][] = 'required_with:source_details.latitude';
             $rules['performance_year'] = ['nullable', 'integer', 'between:2000,2100'];
             $rules['performance'] = ['nullable', 'array:'.implode(',', array_keys(InfrastructureManualEntry::MONTHS))];
             foreach (InfrastructureManualEntry::MONTHS as $month => $label) {
@@ -80,6 +82,7 @@ class StoreInfrastructureManualEntryRequest extends FormRequest
             $rules[$prefix.$key] = match ($type) {
                 'date' => ['nullable', 'date_format:Y-m-d'],
                 'number' => ['nullable', 'numeric', 'min:0'],
+                'coordinate' => ['nullable', 'numeric', $key === 'latitude' ? 'between:-90,90' : 'between:-180,180'],
                 'integer' => ['nullable', 'integer', 'min:0', 'max:100000'],
                 'year' => ['nullable', 'integer', 'between:2000,2100'],
                 'checkbox' => ['nullable', 'boolean'],
