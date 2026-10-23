@@ -8,7 +8,7 @@
     @if ($dataset === 'pnl')<p class="small text-muted">Template ini berisi satu baris per site, bulan, dan tahun. Format Excel P&amp;L dengan banyak kolom bulan tetap dapat diunggah melalui menu Upload Excel pada halaman Profit &amp; Loss.</p>@endif
     <form method="POST" action="{{ route('operations.upload', $dataset) }}" enctype="multipart/form-data" class="d-flex flex-wrap gap-2 align-items-center">@csrf
         <label class="visually-hidden" for="dataset-file">File Excel atau CSV</label><input id="dataset-file" type="file" name="dataset_file" accept=".xlsx,.xls,.csv" class="form-control w-auto" required>
-        <button class="btn btn-brand">Upload Excel</button><a class="btn btn-outline-primary" href="{{ route('operations.template', $dataset) }}">Template Excel</a>
+        <button class="btn btn-brand">Upload Excel</button><a class="btn btn-success" href="{{ route('operations.template', $dataset) }}">Template Excel</a>
     </form>
 </div></div>
 <div class="card"><div class="card-body"><h2 class="h5 mb-3">Tambah Manual</h2>

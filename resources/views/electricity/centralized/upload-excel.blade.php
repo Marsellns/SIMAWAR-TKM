@@ -37,7 +37,7 @@
                 </div>
                 <div class="d-flex flex-wrap gap-2">
                     <button type="submit" class="btn btn-brand btn-sm">Upload dan Perbarui</button>
-                    <a href="{{ $templateRoute }}" class="btn btn-outline-primary btn-sm">Template Excel</a>
+                    <a href="{{ $templateRoute }}" class="btn btn-success btn-sm">Template Excel</a>
                     <a href="{{ url()->previous() }}" class="btn btn-outline-secondary btn-sm">Kembali</a>
                 </div>
             </form>
