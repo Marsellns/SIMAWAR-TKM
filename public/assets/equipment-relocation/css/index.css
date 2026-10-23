@@ -70,6 +70,16 @@
 .er-modal-overlay .btn-secondary { background: var(--white); color: var(--text-primary); border: 1px solid var(--border); }
 #equipmentRelocationPage .btn-secondary:hover,
 .er-modal-overlay .btn-secondary:hover { background: var(--page-bg); }
+#equipmentRelocationPage .btn-secondary.er-excel-download {
+    color: var(--bs-success, #198754);
+    border-color: var(--bs-success, #198754);
+}
+#equipmentRelocationPage .btn-secondary.er-excel-download:hover,
+#equipmentRelocationPage .btn-secondary.er-excel-download:focus-visible {
+    background: var(--bs-success, #198754);
+    border-color: var(--bs-success, #198754);
+    color: #fff;
+}
 #equipmentRelocationPage .btn-secondary:disabled { opacity: .45; cursor: not-allowed; }
 #equipmentRelocationPage .er-load-state { margin: 0 0 18px; padding: 11px 14px; border: 1px solid #bee3f8; border-radius: 9px; color: #075985; background: #f0f9ff; font-size: 13px; }
 #equipmentRelocationPage .er-load-state:empty { display: none; }
