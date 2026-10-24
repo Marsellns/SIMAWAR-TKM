@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\Concerns\HasReadableWorksheetLayout;
 use App\Exports\ListrikAllExport;
 use App\Imports\Electricity\CentralizedListrikAllImport;
 use App\Models\ListrikAll;
@@ -12,6 +13,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 use Maatwebsite\Excel\Facades\Excel;
 use Maatwebsite\Excel\Concerns\FromArray;
+use Maatwebsite\Excel\Concerns\WithEvents;
 use Yajra\DataTables\Facades\DataTables;
 
 class ElectricityCentralizedListrikAllController extends Controller
@@ -32,7 +34,9 @@ class ElectricityCentralizedListrikAllController extends Controller
     public function template()
     {
         $headers = self::listrikAllHeaders();
-        return Excel::download(new class($headers) implements FromArray {
+        return Excel::download(new class($headers) implements FromArray, WithEvents {
+            use HasReadableWorksheetLayout;
+
             public function __construct(private readonly array $headers) {}
             public function array(): array { return [['Listrik All - Template'], $this->headers]; }
         }, 'template-listrik-all-centralized.xlsx');

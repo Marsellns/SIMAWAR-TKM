@@ -2,16 +2,19 @@
 
 namespace App\Exports;
 
+use App\Exports\Concerns\HasReadableWorksheetLayout;
 use App\Models\RecurringIpas;
 use Illuminate\Database\Eloquent\Builder;
 use Maatwebsite\Excel\Concerns\Exportable;
 use Maatwebsite\Excel\Concerns\FromQuery;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
+use Maatwebsite\Excel\Concerns\WithEvents;
 
-class RecurringIpasExport implements FromQuery, WithHeadings, WithMapping
+class RecurringIpasExport implements FromQuery, WithHeadings, WithMapping, WithEvents
 {
     use Exportable;
+    use HasReadableWorksheetLayout;
 
     public function query(): Builder
     {

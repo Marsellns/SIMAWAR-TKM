@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\Concerns\HasReadableWorksheetLayout;
 use App\Imports\Electricity\ListrikInbuildingImport;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Facades\Excel;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
@@ -75,7 +77,9 @@ class ElectricityInbuildingController extends Controller
             'Tanggal',
         ];
 
-        return Excel::download(new class($headers) implements \Maatwebsite\Excel\Concerns\FromArray {
+        return Excel::download(new class($headers) implements \Maatwebsite\Excel\Concerns\FromArray, WithEvents {
+            use HasReadableWorksheetLayout;
+
             public function __construct(private readonly array $headers) {}
             public function array(): array { return [['Data Inbuilding Export'], $this->headers]; }
         }, 'template-listrik-inbuilding.xlsx');

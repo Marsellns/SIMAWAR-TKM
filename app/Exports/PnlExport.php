@@ -2,6 +2,7 @@
 
 namespace App\Exports;
 
+use App\Exports\Concerns\HasReadableWorksheetLayout;
 use App\Models\Site;
 use App\Services\PnlAnalyticsService;
 use Illuminate\Database\Eloquent\Builder;
@@ -11,10 +12,12 @@ use Maatwebsite\Excel\Concerns\FromQuery;
 use Maatwebsite\Excel\Concerns\WithCustomChunkSize;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
+use Maatwebsite\Excel\Concerns\WithEvents;
 
-class PnlExport implements FromQuery, WithHeadings, WithMapping, WithCustomChunkSize
+class PnlExport implements FromQuery, WithHeadings, WithMapping, WithCustomChunkSize, WithEvents
 {
     use Exportable;
+    use HasReadableWorksheetLayout;
 
     public function __construct(
         private readonly ?int $bulan,

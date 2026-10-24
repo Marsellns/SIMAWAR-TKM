@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\Concerns\HasReadableWorksheetLayout;
 use App\Imports\OperationalDatasetImport;
 use App\Support\OperationalDatasets;
 use Illuminate\Http\Request;
@@ -10,6 +11,7 @@ use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 use Maatwebsite\Excel\Concerns\FromArray;
 use Maatwebsite\Excel\Concerns\WithColumnFormatting;
+use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Facades\Excel;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
@@ -63,8 +65,9 @@ final class OperationalDataEntryController extends Controller
             }
         }
 
-        return Excel::download(new class($headers, $formats) implements FromArray, WithColumnFormatting
-        {
+        return Excel::download(new class($headers, $formats) implements FromArray, WithColumnFormatting, WithEvents {
+            use HasReadableWorksheetLayout;
+
             public function __construct(private readonly array $headers, private readonly array $formats) {}
 
             public function array(): array

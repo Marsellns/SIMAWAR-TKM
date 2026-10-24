@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\Concerns\HasReadableWorksheetLayout;
 use App\Exports\PaymentPlnExport;
 use App\Imports\Electricity\CentralizedPaymentImport;
 use App\Models\ListrikPln;
@@ -12,6 +13,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 use Maatwebsite\Excel\Facades\Excel;
 use Maatwebsite\Excel\Concerns\FromArray;
+use Maatwebsite\Excel\Concerns\WithEvents;
 use Yajra\DataTables\Facades\DataTables;
 
 class ElectricityCentralizedPaymentController extends Controller
@@ -33,7 +35,9 @@ class ElectricityCentralizedPaymentController extends Controller
     public function template()
     {
         $headers = ['No', 'ID Pelanggan', 'Site ID', 'Site Name', 'Daya', 'Phasa', 'Gol Tarif', 'Unit PLN', 'Harga', 'Update By', 'Tanggal'];
-        return Excel::download(new class($headers) implements FromArray {
+        return Excel::download(new class($headers) implements FromArray, WithEvents {
+            use HasReadableWorksheetLayout;
+
             public function __construct(private readonly array $headers) {}
             public function array(): array { return [['Tagihan_Bulan_Tahun'], $this->headers]; }
         }, 'template-payment-centralized.xlsx');

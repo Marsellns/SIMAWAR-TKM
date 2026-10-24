@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\Concerns\HasReadableWorksheetLayout;
 use App\Exports\PnlExport;
 use App\Imports\SimawarPnLImport;
 use App\Models\Site;
@@ -13,6 +14,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
+use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Facades\Excel;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Yajra\DataTables\Facades\DataTables;
@@ -138,7 +140,9 @@ class PnlViewController extends Controller
             }
         }
 
-        return Excel::download(new class($headers) implements \Maatwebsite\Excel\Concerns\FromArray {
+        return Excel::download(new class($headers) implements \Maatwebsite\Excel\Concerns\FromArray, WithEvents {
+            use HasReadableWorksheetLayout;
+
             public function __construct(private readonly array $headers) {}
 
             public function array(): array

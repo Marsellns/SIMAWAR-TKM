@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\Concerns\HasReadableWorksheetLayout;
 use App\Exports\AnomaliTagihanPlnExport;
 use App\Imports\Electricity\CentralizedAnomaliImport;
 use App\Models\Read\AnomaliTagihanPln;
@@ -12,6 +13,7 @@ use Illuminate\View\View;
 use Yajra\DataTables\Facades\DataTables;
 use Maatwebsite\Excel\Facades\Excel;
 use Maatwebsite\Excel\Concerns\FromArray;
+use Maatwebsite\Excel\Concerns\WithEvents;
 
 class ElectricityCentralizedAnomaliController extends Controller
 {
@@ -31,7 +33,9 @@ class ElectricityCentralizedAnomaliController extends Controller
     public function template()
     {
         $headers = ['No', 'ID Pelanggan', 'Site ID', 'Site Name', 'Bulan', 'Tahun', 'Harga Sebelumnya', 'Harga Sekarang', 'Kenaikan (%)'];
-        return Excel::download(new class($headers) implements FromArray {
+        return Excel::download(new class($headers) implements FromArray, WithEvents {
+            use HasReadableWorksheetLayout;
+
             public function __construct(private readonly array $headers) {}
             public function array(): array { return [$this->headers]; }
         }, 'template-anomali-tagihan-centralized.xlsx');

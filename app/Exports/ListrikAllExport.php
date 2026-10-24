@@ -2,6 +2,7 @@
 
 namespace App\Exports;
 
+use App\Exports\Concerns\HasReadableWorksheetLayout;
 use App\Models\ListrikAll;
 use App\Models\Read\PaymentPlnMasterMonthly;
 use Illuminate\Support\Collection;
@@ -10,10 +11,12 @@ use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithCustomChunkSize;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
+use Maatwebsite\Excel\Concerns\WithEvents;
 
-class ListrikAllExport implements FromCollection, WithHeadings, WithMapping, WithCustomChunkSize
+class ListrikAllExport implements FromCollection, WithHeadings, WithMapping, WithCustomChunkSize, WithEvents
 {
     use Exportable;
+    use HasReadableWorksheetLayout;
 
     public function __construct(
         private readonly ?int $tahun = null
