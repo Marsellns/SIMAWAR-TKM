@@ -4,6 +4,7 @@ namespace App\Exports;
 
 use App\Exports\Concerns\HasReadableWorksheetLayout;
 use App\Models\CombatSite;
+use App\Support\CombatJarvisFilter;
 use App\Support\CombatSourceDetails;
 use Illuminate\Database\Eloquent\Builder;
 use Maatwebsite\Excel\Concerns\FromQuery;
@@ -19,7 +20,7 @@ class CombatSiteExport implements FromQuery, WithHeadings, WithMapping, WithEven
 
     protected ?int $tahun;
 
-    public function __construct(?int $tahun = null)
+    public function __construct(?int $tahun = null, protected ?string $availableOnJarvis = null)
     {
         $this->tahun = $tahun;
     }
@@ -31,6 +32,8 @@ class CombatSiteExport implements FromQuery, WithHeadings, WithMapping, WithEven
         if ($this->tahun) {
             $query->where('tahun_justi_dirnet', $this->tahun);
         }
+
+        CombatJarvisFilter::apply($query, $this->availableOnJarvis);
 
         return $query;
     }

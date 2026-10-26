@@ -163,6 +163,47 @@ class InfrastructureRebuildImportTest extends TestCase
         ]))->assertOk()->assertJsonPath('recordsFiltered', 1);
     }
 
+    public function test_combat_jarvis_filter_keeps_table_charts_details_and_export_in_sync(): void
+    {
+        DB::table('combat_sites')->insert([
+            ['site_code' => 'JARVIS-OLD', 'tahun_justi_dirnet' => 2025, 'source_details' => json_encode(['database' => ['available_on_jarvis' => 'YES']])],
+            ['site_code' => 'JARVIS-YES', 'tahun_justi_dirnet' => 2026, 'source_details' => json_encode(['database_revenue' => ['available_on_jarvis' => 'YES']])],
+            ['site_code' => 'JARVIS-NO', 'tahun_justi_dirnet' => 2026, 'source_details' => json_encode(['database' => ['available_on_jarvis' => 'YES'], 'available_on_jarvis' => ' no '])],
+            ['site_code' => 'JARVIS-DASH', 'tahun_justi_dirnet' => 2026, 'source_details' => json_encode(['available_on_jarvis' => '-'])],
+            ['site_code' => 'JARVIS-EMPTY', 'tahun_justi_dirnet' => 2026, 'source_details' => null],
+        ]);
+        $this->actingAs($this->userWithRole('viewer'));
+
+        $this->get(route('infrastruktur.combat.index', ['available_on_jarvis' => 'NO']))
+            ->assertOk()
+            ->assertSee('name="available_on_jarvis"', false)
+            ->assertSee('value="YES"', false)
+            ->assertSee('value="NO"', false)
+            ->assertSee('value="-"', false);
+
+        foreach (['YES' => ['JARVIS-YES'], 'NO' => ['JARVIS-NO'], '-' => ['JARVIS-DASH', 'JARVIS-EMPTY']] as $status => $expectedSites) {
+            $filters = ['scope' => 'combat', 'tahun' => 2026, 'available_on_jarvis' => $status];
+            $table = $this->getJson(route('infrastruktur.combat.data', $filters + [
+                'draw' => 1, 'start' => 0, 'length' => 10,
+            ]))->assertOk()->assertJsonPath('recordsFiltered', count($expectedSites));
+            $this->assertEqualsCanonicalizing($expectedSites, array_column($table->json('data'), 'site_code'));
+
+            $this->getJson(route('infrastruktur.dashboard.data', $filters))
+                ->assertOk()->assertJsonPath('cards.total', count($expectedSites));
+            $this->getJson(route('infrastruktur.dashboard.details', $filters + ['filter_field' => 'all_records']))
+                ->assertOk()->assertJsonPath('count', count($expectedSites));
+            $this->assertEqualsCanonicalizing(
+                $expectedSites,
+                (new \App\Exports\CombatSiteExport(2026, $status))->query()->pluck('site_code')->all()
+            );
+        }
+
+        $this->getJson(route('infrastruktur.combat.data', [
+            'tahun' => 2025, 'available_on_jarvis' => 'YES', 'unique_sites' => 1,
+            'draw' => 1, 'start' => 0, 'length' => 10,
+        ]))->assertOk()->assertJsonPath('recordsFiltered', 1)->assertJsonPath('data.0.site_code', 'JARVIS-OLD');
+    }
+
     public function test_rebuild_uploads_merge_selected_contracts_and_refresh_portfolio_charts(): void
     {
         DB::table('sewa_lahan_renewals')->insert(['site_code' => 'OLD-SEWA']);
