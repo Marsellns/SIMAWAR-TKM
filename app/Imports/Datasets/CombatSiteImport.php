@@ -48,13 +48,21 @@ class CombatSiteImport extends BaseDatasetImport
             return null;
         }
 
+        $statusDokumen = $this->cleanText($row['status_dokumen'] ?? null);
+        if ($statusDokumen !== null && mb_strlen($statusDokumen) > 150) {
+            // The table keeps a short searchable status. The complete source
+            // text remains in source_details for the Combat detail view.
+            $firstLine = preg_split('/\R/u', (string) $row['status_dokumen'], 2)[0] ?? '';
+            $statusDokumen = mb_substr($this->cleanText($firstLine) ?: $statusDokumen, 0, 149).'…';
+        }
+
         $mapped = [
             'site_code'           => $siteCode,
             'site_name'           => $this->cleanText($row['site_name'] ?? null),
             'tahun_justi_dirnet'  => $this->parseYear($row['tahun_justi_dirnet'] ?? $row['renewal_cycle'] ?? null),
             // STATUS and STATUS DOKUMEN are different dimensions.  Do not
             // place On Air/Off Air values into the document-status column.
-            'status_dokumen'      => $this->cleanText($row['status_dokumen'] ?? null),
+            'status_dokumen'      => $statusDokumen,
             'status_perpanjangan' => $this->cleanText($row['status_perpanjangan'] ?? null),
             'no_pks_baru'         => $this->cleanText($row['nomor_pks_baru'] ?? $row['no_pks_baru'] ?? null),
             'start_date_baru'     => $this->parseDate($row['periode_awal_baru'] ?? $row['start_date_baru'] ?? null),

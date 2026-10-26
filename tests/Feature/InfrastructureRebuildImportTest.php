@@ -70,6 +70,27 @@ class InfrastructureRebuildImportTest extends TestCase
         $this->assertSame(700, array_combine($export->headings(), $exported)['Revenue Jul 2026']);
     }
 
+    public function test_long_combat_document_status_keeps_full_text_in_detail(): void
+    {
+        $fullStatus = '-Perpanjangan belum dapat diproses'."\n"
+            .str_repeat('Koordinasi PKS Sitak dengan pihak terkait. ', 8);
+        $record = (new \App\Imports\Datasets\CombatSiteImport())->mapSourceRow([
+            'site_id' => 'LONG-STATUS',
+            'year' => 2025,
+            'status_dokumen' => $fullStatus,
+        ]);
+
+        $this->assertLessThanOrEqual(150, mb_strlen($record['status_dokumen']));
+        $this->assertSame($fullStatus, json_decode($record['source_details'], true)['status_dokumen']);
+        $id = DB::table('combat_sites')->insertGetId($record);
+
+        $this->actingAs($this->userWithRole('viewer'));
+        $this->getJson(route('infrastruktur.combat.show', $id))
+            ->assertOk()
+            ->assertJsonPath('site.status_dokumen', $fullStatus)
+            ->assertJsonPath('history.0.status_dokumen', $fullStatus);
+    }
+
     public function test_sync_is_repeatable_keeps_other_modules_and_backs_up_the_old_snapshot(): void
     {
         DB::table('sewa_lahan_renewals')->insert(['site_code' => 'OLD-SEWA', 'tahun_renewal' => 2020]);
@@ -180,6 +201,30 @@ class InfrastructureRebuildImportTest extends TestCase
             $this->getJson(route('infrastruktur.dashboard.details', $params))
                 ->assertOk()->assertJsonPath('count', $sites);
         }
+    }
+
+    public function test_admin_can_replace_both_infrastructure_snapshots_with_one_workbook(): void
+    {
+        DB::table('sewa_lahan_renewals')->insert(['site_code' => 'OLD-SEWA']);
+        DB::table('combat_sites')->insert(['site_code' => 'OLD-COMBAT']);
+        DB::table('site_owners')->insert(['site_code' => 'KEEP-OTHER-MODULE']);
+        $this->actingAs($this->userWithRole('admin'));
+        $this->get(route('infrastruktur.upload', 'sewa-lahan'))
+            ->assertOk()->assertSee('name="replace_snapshot"', false);
+
+        $this->post(route('infrastruktur.upload.store', 'sewa-lahan'), [
+            'replace_snapshot' => '1',
+            'dataset_file' => new UploadedFile($this->workbook(), 'Infra.xlsm',
+                'application/vnd.ms-excel.sheet.macroEnabled.12', null, true),
+        ])->assertSessionHasNoErrors()->assertRedirect(route('infrastruktur.sewa-lahan.index'));
+
+        $this->assertDatabaseCount('sewa_lahan_renewals', 2);
+        $this->assertDatabaseCount('combat_sites', 2);
+        $this->assertDatabaseMissing('sewa_lahan_renewals', ['site_code' => 'OLD-SEWA']);
+        $this->assertDatabaseMissing('combat_sites', ['site_code' => 'OLD-COMBAT']);
+        $this->assertDatabaseHas('site_owners', ['site_code' => 'KEEP-OTHER-MODULE']);
+        $backups = array_values(array_diff(glob(storage_path('app/backups/infrastructure-*.json')) ?: [], $this->priorBackups));
+        $this->assertCount(1, $backups);
     }
 
     public function test_invalid_rebuild_upload_preserves_the_existing_snapshot(): void

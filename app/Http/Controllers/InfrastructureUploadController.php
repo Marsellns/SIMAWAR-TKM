@@ -145,7 +145,10 @@ class InfrastructureUploadController extends Controller
         abort_unless(isset(self::DATASETS[$dataset]), 404);
         $rebuildDataset = isset(InfrastructureRebuildImport::SHEETS[$dataset]);
         $formats = $rebuildDataset ? 'xlsx,xls,xlsm,csv' : 'xlsx,xls,csv';
-        $request->validate(['dataset_file' => 'required|file|mimes:'.$formats.'|max:51200']);
+        $request->validate([
+            'dataset_file' => 'required|file|mimes:'.$formats.'|max:51200',
+            'replace_snapshot' => 'sometimes|boolean',
+        ]);
         $definition = self::DATASETS[$dataset];
         $import = $dataset === 'combat'
             ? new CombatWorkbookImport
@@ -162,6 +165,14 @@ class InfrastructureUploadController extends Controller
                     throw new \RuntimeException('File upload sementara tidak dapat dibaca.');
                 }
                 $rebuild = app(InfrastructureRebuildImport::class);
+                if ($request->boolean('replace_snapshot')) {
+                    $datasets = $rebuild->read($path, sourceName: $file->getClientOriginalName());
+                    $rebuild->synchronize($datasets);
+
+                    return redirect()->route('infrastruktur.'.$dataset.'.index')
+                        ->with('success', 'Snapshot Sewa Lahan dan Combat berhasil diperbarui: '
+                            .count($datasets['sewa-lahan']).' dan '.count($datasets['combat']).' catatan.');
+                }
                 if ($rebuild->supports($path)) {
                     $datasets = $rebuild->read($path, $dataset, $file->getClientOriginalName());
                     $rebuild->merge($datasets);
