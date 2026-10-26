@@ -761,7 +761,7 @@ function dashboardTarget(scope, filterField, filterValue, ownershipScope = '') {
     const sewaUrl = @json(route('infrastruktur.sewa-lahan.index'));
     const combatUrl = @json(route('infrastruktur.combat.index'));
     let target = scope === 'combat' ? combatUrl : sewaUrl;
-    const pageParams = new URLSearchParams(window.location.search);
+    const pageParams = typeof window === 'undefined' ? new URLSearchParams() : new URLSearchParams(window.location.search);
     const selectedYear = pageParams.get('tahun') || '';
     const selectedJarvis = (pageParams.get('available_on_jarvis') || '').trim().toUpperCase();
     const retainJarvis = params => {

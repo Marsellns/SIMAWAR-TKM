@@ -23,6 +23,21 @@ test('Total Site selections include every row and preserve ownership in the exis
     }
 });
 
+test('Combat chart links retain the Available on Jarvis selection', () => {
+    const source = read('resources/views/infrastruktur/partials/analytics.blade.php');
+    const start = source.indexOf('function dashboardTarget(');
+    const end = source.indexOf('window.applyInfrastructureFilter =', start);
+    const context = { URLSearchParams, window: { location: { search: '?tahun=2026&available_on_jarvis=no' } } };
+    vm.createContext(context);
+    vm.runInContext(source.slice(start, end).replace(/@json\(route\('([^']+)'\)\)/g, '"/$1"'), context);
+
+    const combat = new URL(context.dashboardTarget('combat', 'all_records', ''), 'https://example.test');
+    assert.equal(combat.searchParams.get('tahun'), '2026');
+    assert.equal(combat.searchParams.get('available_on_jarvis'), 'NO');
+    const sewa = new URL(context.dashboardTarget('sewa', 'all_records', ''), 'https://example.test');
+    assert.equal(sewa.searchParams.has('available_on_jarvis'), false);
+});
+
 test('status and missing PKS cards filter all matching database rows in the module table', () => {
     const source = read('resources/views/infrastruktur/partials/analytics.blade.php');
     const overview = read('resources/views/infrastruktur/index.blade.php');
@@ -54,7 +69,7 @@ test('Total Site clears previous year and search filters before reloading the ta
         const source = read(`resources/views/infrastruktur/${module}/index.blade.php`);
         const start = source.indexOf("$(document).on('infrastructure-filter',");
         const end = source.indexOf("$('#page-size').on('change'", start);
-        const state = { year: '2025', search: 'SHARED', columnSearch: 'SHARED', reloads: 0 };
+        const state = { year: '2025', jarvis: module === 'combat' ? 'NO' : '', search: 'SHARED', columnSearch: 'SHARED', reloads: 0 };
         const table = {
             search(value) { state.search = value; return table; },
             columns: Object.assign(() => ({ search(value) { state.columnSearch = value; } }), { adjust() {} }),
@@ -67,19 +82,28 @@ test('Total Site clears previous year and search filters before reloading the ta
                 if (target === context.document) return { on(name, handler) { state.handler = handler; } };
                 return {
                     removeClass() { state.visible = true; },
-                    val(value) { if (value !== undefined) state.year = value; return state.year; },
+                    val(value) {
+                        if (target === '#filter-available-on-jarvis') return state.jarvis;
+                        if (value !== undefined) state.year = value;
+                        return state.year;
+                    },
                     attr(name, value) { state.exportUrl = value; },
                 };
             },
         };
         vm.createContext(context);
+        if (module === 'combat') {
+            const updateStart = source.indexOf('function updateExportUrl()');
+            const updateEnd = source.indexOf('// Sinkronisasi tahun', updateStart);
+            vm.runInContext(source.slice(updateStart, updateEnd), context);
+        }
         vm.runInContext(source.slice(start, end), context);
         state.handler({}, { filterField: 'all_records', filterValue: '' });
         assert.equal(state.visible, true);
         assert.equal(state.year, 'all');
         assert.equal(state.search, '');
         assert.equal(state.columnSearch, '');
-        assert.equal(state.exportUrl, '/export?tahun=all');
+        assert.equal(state.exportUrl, module === 'combat' ? '/export?tahun=all&available_on_jarvis=NO' : '/export?tahun=all');
         assert.equal(state.reloads, 1);
         assert.equal(context.currentFilter.field, 'all_records');
     }
