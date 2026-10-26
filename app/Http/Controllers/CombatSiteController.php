@@ -90,6 +90,9 @@ class CombatSiteController extends Controller
         $site = $combat->toArray();
         $site['detail_url'] = route('infrastruktur.combat.show', $combat);
         $site['source_details'] = CombatSourceDetails::flattened($combat->source_details);
+        if (str_ends_with((string) $combat->status_dokumen, '…')) {
+            $site['status_dokumen'] = $site['source_details']['status_dokumen'] ?? $combat->status_dokumen;
+        }
         $site['lease_duration'] = InfrastructureMetrics::leaseDurationLabel($combat);
         $site['pks_status_label'] = InfrastructureMetrics::pksStatusLabel($combat);
         $site['process_started_at'] = InfrastructureMetrics::processStartDate($combat)?->toDateString();
@@ -111,7 +114,9 @@ class CombatSiteController extends Controller
                     'id' => $row->id,
                     'site_name' => $row->site_name,
                     'year' => $row->tahun_justi_dirnet,
-                    'status_dokumen' => $row->status_dokumen,
+                    'status_dokumen' => str_ends_with((string) $row->status_dokumen, '…')
+                        ? ($details['status_dokumen'] ?? $row->status_dokumen)
+                        : $row->status_dokumen,
                     'status_perpanjangan' => $row->status_perpanjangan,
                     'status_justifikasi' => $details['status_justifikasi'] ?? $details['justifikasi'] ?? null,
                 ];

@@ -16,6 +16,13 @@
    <label class="form-label fw-semibold" for="dataset-file">File Excel/CSV <span class="text-danger">*</span></label>
    <input id="dataset-file" type="file" name="dataset_file" class="form-control" accept="{{ in_array($dataset, ['sewa-lahan', 'combat'], true) ? '.xlsx,.xls,.xlsm,.csv' : '.xlsx,.xls,.csv' }}" required>
    <small class="text-body-secondary d-block mt-2">Maksimal 50 MB. Gunakan format kolom dataset yang tersedia.</small>
+   @if (in_array($dataset, ['sewa-lahan', 'combat'], true))
+    <div class="form-check mt-3">
+     <input class="form-check-input" type="checkbox" name="replace_snapshot" value="1" id="replace-snapshot">
+     <label class="form-check-label" for="replace-snapshot">Ganti snapshot Sewa Lahan dan Combat sesuai kedua sheet workbook</label>
+     <div class="form-text">Gunakan untuk pembaruan penuh dari workbook Infrastruktur Management. Sistem mencadangkan kedua tabel sebelum menggantinya.</div>
+    </div>
+   @endif
    <div class="mt-3 d-flex gap-2">
     <button class="btn btn-brand" type="submit">Upload dan simpan</button>
     <a class="btn btn-success" href="{{ route('infrastruktur.upload.template', $dataset) }}">Template Excel</a>

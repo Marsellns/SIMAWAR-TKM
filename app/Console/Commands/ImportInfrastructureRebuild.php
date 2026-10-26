@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Imports\Datasets\InfrastructureRebuildImport;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Database\QueryException;
 
 class ImportInfrastructureRebuild extends Command
 {
@@ -35,7 +36,10 @@ class ImportInfrastructureRebuild extends Command
             $this->line('Backup snapshot sebelumnya: '.$backup);
             return self::SUCCESS;
         } catch (\Throwable $exception) {
-            $this->error('Sinkronisasi dibatalkan: '.$exception->getMessage());
+            $message = $exception instanceof QueryException
+                ? ($exception->getPrevious()?->getMessage() ?: 'Kesalahan database saat menyimpan data.')
+                : $exception->getMessage();
+            $this->error('Sinkronisasi dibatalkan: '.$message);
             return self::FAILURE;
         }
     }
