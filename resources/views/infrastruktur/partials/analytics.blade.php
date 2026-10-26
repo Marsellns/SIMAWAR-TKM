@@ -651,8 +651,9 @@ window.openInfrastructureDrilldown = function (scope, filterField, filterValue, 
     const pageParams = new URLSearchParams(window.location.search);
     const selectedYear = pageParams.get('tahun');
     if (selectedYear && selectedYear !== 'all') params.set('tahun', selectedYear);
-    if (scope === 'combat' && ['YES', 'NO', '-'].includes(pageParams.get('available_on_jarvis'))) {
-        params.set('available_on_jarvis', pageParams.get('available_on_jarvis'));
+    const selectedJarvis = (pageParams.get('available_on_jarvis') || '').trim().toUpperCase();
+    if (scope === 'combat' && ['YES', 'NO', '-'].includes(selectedJarvis)) {
+        params.set('available_on_jarvis', selectedJarvis);
     }
     // Retain value-less requests for callers that explicitly need raw records.
     if (filterField && (filterField === 'all_records' || (filterValue !== undefined && filterValue !== null && filterValue !== ''))) {
@@ -762,7 +763,7 @@ function dashboardTarget(scope, filterField, filterValue, ownershipScope = '') {
     let target = scope === 'combat' ? combatUrl : sewaUrl;
     const pageParams = new URLSearchParams(window.location.search);
     const selectedYear = pageParams.get('tahun') || '';
-    const selectedJarvis = pageParams.get('available_on_jarvis');
+    const selectedJarvis = (pageParams.get('available_on_jarvis') || '').trim().toUpperCase();
     const retainJarvis = params => {
         if (target === combatUrl && ['YES', 'NO', '-'].includes(selectedJarvis)) {
             params.set('available_on_jarvis', selectedJarvis);
@@ -890,7 +891,7 @@ $(function () {
         const dataParams = { scope };
         const selectedYear = new URLSearchParams(window.location.search).get('tahun');
         if (selectedYear && selectedYear !== 'all') dataParams.tahun = selectedYear;
-        const selectedJarvis = new URLSearchParams(window.location.search).get('available_on_jarvis');
+        const selectedJarvis = (new URLSearchParams(window.location.search).get('available_on_jarvis') || '').trim().toUpperCase();
         if (scope === 'combat' && ['YES', 'NO', '-'].includes(selectedJarvis)) {
             dataParams.available_on_jarvis = selectedJarvis;
         }
