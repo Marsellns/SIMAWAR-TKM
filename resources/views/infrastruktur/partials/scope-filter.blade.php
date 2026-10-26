@@ -14,6 +14,17 @@
                 @endforeach
             </select>
         </div>
+        @if ($scope === 'combat')
+            <div>
+                <label for="filter-available-on-jarvis" class="form-label small fw-semibold mb-1">Available on Jarvis</label>
+                <select id="filter-available-on-jarvis" name="available_on_jarvis" class="form-select form-select-sm" style="min-width:150px">
+                    <option value="">Semua Status</option>
+                    @foreach (['YES', 'NO', '-'] as $jarvisStatus)
+                        <option value="{{ $jarvisStatus }}" @selected(strtoupper(trim((string) request('available_on_jarvis'))) === $jarvisStatus)>{{ $jarvisStatus }}</option>
+                    @endforeach
+                </select>
+            </div>
+        @endif
         @if ($scope === 'sewa')
             <div>
                 <label for="filter-ownership" class="form-label small fw-semibold mb-1">Kepemilikan Site</label>

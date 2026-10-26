@@ -12,7 +12,7 @@
     @include('infrastruktur.partials.analytics', ['scope' => 'combat'])
 
     {{-- Container Data Tabel Infrastruktur --}}
-    <div id="infrastructure-data" class="infrastructure-table-section mt-4 {{ request()->filled('filter_field') || (request()->filled('tahun') && request('tahun') !== 'all') || request()->boolean('unique_sites') ? '' : 'd-none' }}">
+    <div id="infrastructure-data" class="infrastructure-table-section mt-4 {{ request()->filled('filter_field') || (request()->filled('tahun') && request('tahun') !== 'all') || in_array(strtoupper(trim((string) request('available_on_jarvis'))), ['YES', 'NO', '-'], true) || request()->boolean('unique_sites') ? '' : 'd-none' }}">
         {{-- Banner Filter Aktif dari Diagram / Kartu --}}
         <div id="active-filter-alert" class="alert alert-info py-2 px-3 d-flex align-items-center justify-content-between mb-3 d-none">
             <div class="d-flex align-items-center gap-2">
@@ -204,12 +204,19 @@ $(function () {
         value: urlParams.get('filter_value') || ''
     };
 
+    function updateExportUrl() {
+        const params = new URLSearchParams({ tahun: $('#filter-tahun').val() || 'all' });
+        const jarvis = $('#filter-available-on-jarvis').val();
+        if (jarvis) params.set('available_on_jarvis', jarvis);
+        $('#btn-export').attr('href', exportBaseUrl + '?' + params);
+    }
+
     // Sinkronisasi tahun jika ada di URL
     const initialTahun = urlParams.get('tahun');
     if (initialTahun && $('#filter-tahun option[value="' + initialTahun + '"]').length) {
         $('#filter-tahun').val(initialTahun);
-        $('#btn-export').attr('href', exportBaseUrl + '?tahun=' + initialTahun);
     }
+    updateExportUrl();
 
     function updateFilterBadge() {
         if (currentFilter.field && currentFilter.value) {
@@ -235,7 +242,11 @@ $(function () {
         url.searchParams.delete('unique_sites');
         window.history.pushState({}, '', url);
         updateFilterBadge();
-        $('#infrastructure-data').addClass('d-none');
+        if (($('#filter-tahun').val() || 'all') !== 'all' || $('#filter-available-on-jarvis').val()) {
+            table.ajax.reload();
+        } else {
+            $('#infrastructure-data').addClass('d-none');
+        }
     });
 
     const columns = [
@@ -278,6 +289,7 @@ $(function () {
         scrollX: true,
         ajax: { url: @json(route('infrastruktur.combat.data')), data: (d) => {
             d.tahun = $('#filter-tahun').val();
+            d.available_on_jarvis = $('#filter-available-on-jarvis').val();
             d.filter_field = currentFilter.field;
             d.filter_value = currentFilter.value;
             d.unique_sites = new URLSearchParams(window.location.search).get('unique_sites') || '';
@@ -297,13 +309,13 @@ $(function () {
         if (currentFilter.field === 'all_records') {
             const selectedYear = new URLSearchParams(window.location.search).get('tahun') || 'all';
             $('#filter-tahun').val(selectedYear);
-            $('#btn-export').attr('href', exportBaseUrl + '?tahun=' + selectedYear);
+            updateExportUrl();
             table.search('').columns().search('');
         }
 
         if (currentFilter.field === 'tahun') {
             $('#filter-tahun').val(currentFilter.value || 'all');
-            $('#btn-export').attr('href', exportBaseUrl + '?tahun=' + $('#filter-tahun').val());
+            updateExportUrl();
             currentFilter.field = '';
             currentFilter.value = '';
         }

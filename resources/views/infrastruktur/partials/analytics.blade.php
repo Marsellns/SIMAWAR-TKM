@@ -648,8 +648,12 @@ window.openInfrastructureDrilldown = function (scope, filterField, filterValue, 
     modal.show();
 
     const params = new URLSearchParams({ scope: scope || 'all' });
-    const selectedYear = new URLSearchParams(window.location.search).get('tahun');
+    const pageParams = new URLSearchParams(window.location.search);
+    const selectedYear = pageParams.get('tahun');
     if (selectedYear && selectedYear !== 'all') params.set('tahun', selectedYear);
+    if (scope === 'combat' && ['YES', 'NO', '-'].includes(pageParams.get('available_on_jarvis'))) {
+        params.set('available_on_jarvis', pageParams.get('available_on_jarvis'));
+    }
     // Retain value-less requests for callers that explicitly need raw records.
     if (filterField && (filterField === 'all_records' || (filterValue !== undefined && filterValue !== null && filterValue !== ''))) {
         params.set('filter_field', filterField);
@@ -756,12 +760,20 @@ function dashboardTarget(scope, filterField, filterValue, ownershipScope = '') {
     const sewaUrl = @json(route('infrastruktur.sewa-lahan.index'));
     const combatUrl = @json(route('infrastruktur.combat.index'));
     let target = scope === 'combat' ? combatUrl : sewaUrl;
-    const selectedYear = typeof window === 'undefined' ? '' : (new URLSearchParams(window.location.search).get('tahun') || '');
+    const pageParams = new URLSearchParams(window.location.search);
+    const selectedYear = pageParams.get('tahun') || '';
+    const selectedJarvis = pageParams.get('available_on_jarvis');
+    const retainJarvis = params => {
+        if (target === combatUrl && ['YES', 'NO', '-'].includes(selectedJarvis)) {
+            params.set('available_on_jarvis', selectedJarvis);
+        }
+    };
 
     // Total Site opens every source row and stays visible after a reload.
     if (filterField === 'all_records') {
         const params = new URLSearchParams({ filter_field: 'all_records' });
         if (selectedYear && selectedYear !== 'all') params.set('tahun', selectedYear);
+        retainJarvis(params);
         if (scope === 'sewa' && (ownershipScope === 'Telkomsel' || ownershipScope === 'TP')) {
             params.set('ownership_scope', ownershipScope);
         }
@@ -776,6 +788,7 @@ function dashboardTarget(scope, filterField, filterValue, ownershipScope = '') {
             params.set('filter_field', 'tahun');
             params.set('filter_value', filterValue);
         }
+        retainJarvis(params);
         if (scope === 'sewa' && (ownershipScope === 'Telkomsel' || ownershipScope === 'TP')) {
             params.set('ownership_scope', ownershipScope);
         }
@@ -794,6 +807,7 @@ function dashboardTarget(scope, filterField, filterValue, ownershipScope = '') {
 
     const params = new URLSearchParams();
     if (selectedYear && selectedYear !== 'all') params.set('tahun', selectedYear);
+    retainJarvis(params);
     if (filterField && filterValue) {
         params.set('filter_field', filterField);
         params.set('filter_value', filterValue);
@@ -876,6 +890,10 @@ $(function () {
         const dataParams = { scope };
         const selectedYear = new URLSearchParams(window.location.search).get('tahun');
         if (selectedYear && selectedYear !== 'all') dataParams.tahun = selectedYear;
+        const selectedJarvis = new URLSearchParams(window.location.search).get('available_on_jarvis');
+        if (scope === 'combat' && ['YES', 'NO', '-'].includes(selectedJarvis)) {
+            dataParams.available_on_jarvis = selectedJarvis;
+        }
         if (ownershipScope === 'Telkomsel' || ownershipScope === 'TP') {
             dataParams.ownership_scope = ownershipScope;
         }

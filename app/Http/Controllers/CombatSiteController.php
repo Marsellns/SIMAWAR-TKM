@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Exports\CombatSiteExport;
 use App\Http\Requests\UpdateCombatSiteRequest;
 use App\Models\CombatSite;
+use App\Support\CombatJarvisFilter;
 use App\Support\CombatSourceDetails;
 use App\Support\InfrastructureCanonicalSites;
 use App\Support\InfrastructureMetrics;
@@ -48,6 +49,7 @@ class CombatSiteController extends Controller
             if ($request->filled('tahun') && $request->tahun !== 'all') {
                 $selection->where('tahun_justi_dirnet', (int) $request->tahun);
             }
+            CombatJarvisFilter::apply($selection, $request->query('available_on_jarvis'));
             $ids = InfrastructureCanonicalSites::fromRows($selection->get())->pluck('id');
             $query->whereIn('combat_sites.id', $ids);
         }
@@ -56,6 +58,7 @@ class CombatSiteController extends Controller
         if ($request->filled('tahun') && $request->tahun !== 'all') {
             $query->where('tahun_justi_dirnet', (int) $request->tahun);
         }
+        CombatJarvisFilter::apply($query, $request->query('available_on_jarvis'));
         $this->applyDashboardFilter($query, $request);
 
         $dataTable = DataTables::of($query);
@@ -385,7 +388,7 @@ class CombatSiteController extends Controller
     }
 
     /**
-     * Download Excel — filter sesuai tahun aktif.
+     * Download Excel — filter sesuai pilihan yang aktif.
      */
     public function exportExcel(Request $request)
     {
@@ -395,6 +398,6 @@ class CombatSiteController extends Controller
 
         $filename = 'combat_sites' . ($tahun ? "_{$tahun}" : '_all') . '.xlsx';
 
-        return (new CombatSiteExport($tahun))->download($filename);
+        return (new CombatSiteExport($tahun, CombatJarvisFilter::selection($request->query('available_on_jarvis'))))->download($filename);
     }
 }

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\CombatSite;
 use App\Models\SewaLahanRenewal;
 use App\Models\SiteOwner;
+use App\Support\CombatJarvisFilter;
 use App\Support\CombatSourceDetails;
 use App\Support\InfrastructureCanonicalSites;
 use App\Support\InfrastructureMetrics;
@@ -30,7 +31,11 @@ class InfrastructureDashboardController extends Controller
     {
         $year = $this->selectedYear($request);
         $sewa = SewaLahanRenewal::query()->when($year, fn ($query) => $query->where('tahun_renewal', $year))->get();
-        $combat = CombatSite::query()->when($year, fn ($query) => $query->where('tahun_justi_dirnet', $year))->get();
+        $combatQuery = CombatSite::query()->when($year, fn ($query) => $query->where('tahun_justi_dirnet', $year));
+        if ($request->input('scope') === 'combat') {
+            CombatJarvisFilter::apply($combatQuery, $request->query('available_on_jarvis'));
+        }
+        $combat = $combatQuery->get();
         $scope = $request->string('scope')->toString();
         $ownershipScope = $this->ownershipScope($request->input('ownership_scope'));
         $ownerRows = SiteOwner::query()->get();
@@ -316,7 +321,11 @@ class InfrastructureDashboardController extends Controller
     {
         $year = $this->selectedYear($request);
         $sewa = SewaLahanRenewal::query()->when($year, fn ($query) => $query->where('tahun_renewal', $year))->get();
-        $combat = CombatSite::query()->when($year, fn ($query) => $query->where('tahun_justi_dirnet', $year))->get();
+        $combatQuery = CombatSite::query()->when($year, fn ($query) => $query->where('tahun_justi_dirnet', $year));
+        if ($request->input('scope') === 'combat') {
+            CombatJarvisFilter::apply($combatQuery, $request->query('available_on_jarvis'));
+        }
+        $combat = $combatQuery->get();
         $scope = $request->string('scope')->toString();
         $records = collect();
 
