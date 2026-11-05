@@ -222,7 +222,7 @@ $(function () {
 
         $('#detail-title').text((row.site_id ?? '-') + ' (' + (row.site_name ?? '-') + ')');
         $('#detail-body').html(renderDetail(row));
-        detailModal.show();
+        detailModal.show(this);
     });
 });
 </script>

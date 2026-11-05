@@ -4,13 +4,16 @@ namespace App\Filament\Pages;
 
 use App\Models\User;
 use App\Services\DeleteUserAccount;
+use App\Support\DashboardViewerRole;
 use Filament\Actions\Action;
+use Filament\Forms\Components\Select;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Table;
+use Illuminate\Support\Facades\DB;
 
 class UserManagement extends Page implements HasTable
 {
@@ -25,7 +28,9 @@ class UserManagement extends Page implements HasTable
 
     public static function canAccess(): bool
     {
-        return auth()->user()?->account_status === 'approved' && auth()->user()->hasRole('admin');
+        $user = auth()->user();
+
+        return $user?->account_status === 'approved' && $user->hasRole('admin') && $user->dashboardViewerRole() === null;
     }
 
     public function getTitle(): string
@@ -35,6 +40,8 @@ class UserManagement extends Page implements HasTable
 
     public function table(Table $table): Table
     {
+        $accessOptions = ['viewer' => 'Viewer (semua modul)', ...DashboardViewerRole::options()];
+
         return $table
             ->query(User::query()->with('roles'))
             ->columns([
@@ -59,6 +66,30 @@ class UserManagement extends Page implements HasTable
             ])
             ->defaultSort('created_at', 'desc')
             ->recordActions([
+                Action::make('changeDashboardAccess')
+                    ->label('Ubah akses dashboard')
+                    ->icon('heroicon-o-key')
+                    ->visible(fn (User $record): bool => static::canAccess() && $this->canChangeDashboardAccess($record))
+                    ->schema([
+                        Select::make('role')
+                            ->label('Role akses')
+                            ->options($accessOptions)
+                            ->in(array_keys($accessOptions))
+                            ->default(fn (User $record) => $record->dashboardViewerRole()?->value
+                                ?? ($record->hasRole('viewer') ? 'viewer' : null))
+                            ->required(),
+                    ])
+                    ->action(function (User $record, array $data): void {
+                        abort_unless(static::canAccess(), 403);
+
+                        DB::transaction(function () use ($record, $data): void {
+                            $user = User::query()->lockForUpdate()->findOrFail($record->getKey());
+                            abort_unless($this->canChangeDashboardAccess($user), 403);
+                            $user->syncRoles([$data['role']]);
+                        });
+
+                        Notification::make()->title('Akses dashboard berhasil diperbarui')->success()->send();
+                    }),
                 Action::make('deleteUser')
                     ->label('Hapus')
                     ->icon('heroicon-o-trash')
@@ -85,5 +116,10 @@ class UserManagement extends Page implements HasTable
                         $notification->send();
                     }),
             ]);
+    }
+
+    private function canChangeDashboardAccess(User $user): bool
+    {
+        return $user->account_status === 'approved' && ! $user->hasRole('admin');
     }
 }

@@ -133,7 +133,7 @@
             <div class="{{ !empty($chart['wide_on_overview']) && $scope === 'all' ? 'col-12' : 'col-xl-6' }} d-flex">
                 <div class="card h-100 w-100 infra-detail-chart-card">
                     <div class="card-header fw-semibold">{{ $chart['title'] }}</div>
-                    <div class="card-body"><div id="infra-{{ $scope }}-{{ $chart['id'] }}" class="infra-detail-chart" style="height:{{ $chart['height'] ?? 320 }}px"></div></div>
+                    <div class="card-body"><div id="infra-{{ $scope }}-{{ $chart['id'] }}" class="infra-detail-chart" style="height:{{ $chart['height'] ?? ($chart['type'] === 'pie' ? 300 : 320) }}px"></div></div>
                 </div>
             </div>
         @endforeach
@@ -330,6 +330,7 @@ window.infrastructurePieLabelOptions = function (pointCount) {
             itemDistance: useSideLegend ? 0 : 12,
             itemMarginBottom: useSideLegend ? 6 : 0,
             symbolWidth: useSideLegend ? 10 : undefined,
+            itemStyle: { fontSize: useSideLegend ? '1rem' : '0.9rem' },
             labelFormatter: function () {
                 const points = this.series?.data || [];
                 const total = points.reduce((sum, point) => sum + (Number(point.y) || 0), 0);
@@ -341,21 +342,17 @@ window.infrastructurePieLabelOptions = function (pointCount) {
         plotOptions: {
             pie: {
                 showInLegend: true,
-                size: useSideLegend ? '76%' : '68%',
+                size: useSideLegend ? '88%' : '76%',
                 dataLabels: {
                     enabled: true,
                     distance: -24,
                     allowOverlap: false,
-                    padding: 2,
-                    borderRadius: 3,
-                    backgroundColor: 'rgba(15, 23, 42, 0.78)',
-                    color: '#ffffff',
                     formatter: function () {
                         return this.y > 0 && this.percentage >= 8
                             ? new Intl.NumberFormat('id-ID').format(this.y)
                             : null;
                     },
-                    style: { color: '#ffffff', fontSize: '0.85rem', fontWeight: '700', textOutline: 'none' }
+                    style: { color: 'contrast', fontSize: '1rem', fontWeight: '600', textOutline: 'none' }
                 }
             }
         },
@@ -369,8 +366,9 @@ window.infrastructurePieLabelOptions = function (pointCount) {
                     maxHeight: 62,
                     itemDistance: 10,
                     itemMarginBottom: 0,
+                    itemStyle: { fontSize: '0.9rem' },
                 },
-                plotOptions: { pie: { size: '70%' } }
+                plotOptions: { pie: { size: '76%' } }
             }
         }]
     };
@@ -430,7 +428,7 @@ window.infrastructureSiteCountLabelOptions = function (type) {
                             ? null
                             : new Intl.NumberFormat('id-ID').format(this.y);
                     },
-                    style: { fontSize: '0.85rem', fontWeight: '700', textOutline: 'none' }
+                    style: { fontSize: '0.85rem', fontWeight: '600', textOutline: 'none' }
                 }
             }
         }

@@ -74,8 +74,8 @@
 </div>
 
 <div class="row g-3 infra-overview-chart-grid">
-    <div class="col-lg-6 d-flex"><div class="card h-100 w-100 infra-overview-chart-card"><div class="card-header fw-semibold">Komposisi Status Site</div><div class="card-body"><div id="infra-status-chart" class="infra-overview-chart"></div></div></div></div>
-    <div class="col-lg-6 d-flex"><div class="card h-100 w-100 infra-overview-chart-card"><div class="card-header fw-semibold">Site Owner (TP / Telkomsel)</div><div class="card-body"><div id="infra-owner-chart" class="infra-overview-chart"></div></div></div></div>
+    <div class="col-lg-6 d-flex"><div class="card h-100 w-100 infra-overview-chart-card"><div class="card-header fw-semibold">Komposisi Status Site</div><div class="card-body"><div id="infra-status-chart" class="infra-overview-chart infra-pie-chart"></div></div></div></div>
+    <div class="col-lg-6 d-flex"><div class="card h-100 w-100 infra-overview-chart-card"><div class="card-header fw-semibold">Site Owner (TP / Telkomsel)</div><div class="card-body"><div id="infra-owner-chart" class="infra-overview-chart infra-pie-chart"></div></div></div></div>
     <div class="col-12"><div class="card infra-overview-chart-card"><div class="card-header fw-semibold">Distribusi Tahun Renewal Sewa Lahan</div><div class="card-body"><div id="infra-renewal-chart" class="infra-overview-chart"></div></div></div></div>
 </div>
 </div>

@@ -266,7 +266,7 @@ $(function () {
 
         $('#detail-title').text((row.id_pelanggan ?? '-') + ' (' + (row.site_id ?? '-') + ')');
         $('#detail-body').html(renderDetail(row));
-        detailModal.show();
+        detailModal.show(this);
     });
 });
 </script>

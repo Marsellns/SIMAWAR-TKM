@@ -16,7 +16,7 @@ class ReportNotifications extends DatabaseNotifications
     public function getNotificationsQuery(): Builder | Relation
     {
         $user = $this->getUser();
-        abort_unless($user?->account_status === 'approved', 403);
+        abort_unless($user?->account_status === 'approved' && $user->dashboardViewerRole() === null, 403);
 
         return $user->notifications()->latest();
     }

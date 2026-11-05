@@ -22,9 +22,14 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->appendToGroup('web', [
             \App\Http\Middleware\EnsureAccountApproved::class,
+            \App\Http\Middleware\RestrictDashboardAccess::class,
             \App\Http\Middleware\RefreshReportData::class,
             \App\Http\Middleware\RenderReportInFilament::class,
         ]);
+        $middleware->prependToPriorityList(
+            \Illuminate\Routing\Middleware\SubstituteBindings::class,
+            \App\Http\Middleware\RestrictDashboardAccess::class,
+        );
 
         // Alias middleware spatie/laravel-permission (role & permission)
         $middleware->alias([

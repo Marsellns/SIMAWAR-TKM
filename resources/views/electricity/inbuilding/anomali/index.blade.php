@@ -217,7 +217,7 @@ $(function () {
         </div>`;
 
         $('#anomali-modal-body').html(html);
-        detailModal.show();
+        detailModal.show(this);
     });
 });
 </script>

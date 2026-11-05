@@ -243,17 +243,21 @@ $(function () {
                 colors: STATUS_DEFS.map((s) => s.color),
                 legend: { position: 'bottom' },
                 dataLabels: {
+                    style: { fontSize: '16px', fontWeight: 600 },
                     formatter: (val, { seriesIndex }) =>
-                        `${STATUS_DEFS[seriesIndex].label}: ${fmt.format(values[seriesIndex])} (${val.toFixed(1)}%)`,
+                        `${fmt.format(values[seriesIndex])} (${val.toFixed(1)}%)`,
                 },
                 plotOptions: {
                     pie: {
                         donut: {
+                            size: '58%',
                             labels: {
                                 show: true,
+                                value: { fontWeight: 600 },
                                 total: {
                                     show: true,
                                     label: 'Total Site',
+                                    fontWeight: 600,
                                     formatter: () => fmt.format(summary.total_sites),
                                 },
                             },
@@ -277,8 +281,9 @@ $(function () {
             donut.updateOptions({
                 series: values,
                 dataLabels: {
+                    style: { fontSize: '16px', fontWeight: 600 },
                     formatter: (val, { seriesIndex }) =>
-                        `${STATUS_DEFS[seriesIndex].label}: ${fmt.format(values[seriesIndex])} (${val.toFixed(1)}%)`,
+                        `${fmt.format(values[seriesIndex])} (${val.toFixed(1)}%)`,
                 },
                 plotOptions: {
                     pie: {

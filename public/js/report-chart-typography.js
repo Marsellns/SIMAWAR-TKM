@@ -64,10 +64,10 @@
             const types = defaults ? new Set(['series', 'pie', 'column', 'bar', 'line', ...Object.keys(result.plotOptions)]) : Object.keys(result.plotOptions);
             for (const type of types) {
                 result.plotOptions[type] ??= {};
-                result.plotOptions[type].dataLabels = label(result.plotOptions[type].dataLabels, '500');
+                result.plotOptions[type].dataLabels = label(result.plotOptions[type].dataLabels, '600');
             }
         }
-        if (result.series) result.series = result.series.map(series => series.dataLabels === undefined ? series : { ...series, dataLabels: label(series.dataLabels, '500') });
+        if (result.series) result.series = result.series.map(series => series.dataLabels === undefined ? series : { ...series, dataLabels: label(series.dataLabels, '600') });
         if (result.responsive?.rules) result.responsive.rules = result.responsive.rules.map(rule => ({ ...rule, chartOptions: highchartsOptions(H, rule.chartOptions, false) }));
         return result;
     }
@@ -108,7 +108,7 @@
                     plugin.labels.font = chartFont(plugin.labels.font, labelSize, '500');
                 } else if (key === 'tooltip') {
                     for (const font of ['titleFont', 'bodyFont', 'footerFont']) plugin[font] = chartFont(plugin[font], labelSize, font === 'bodyFont' ? '400' : '600');
-                } else plugin.font = chartFont(plugin.font, key === 'title' ? 18 : labelSize, key === 'title' ? '600' : key === 'datalabels' ? '500' : '400');
+                } else plugin.font = chartFont(plugin.font, key === 'title' ? 18 : labelSize, key === 'title' || key === 'datalabels' ? '600' : '400');
             }
         }
     }
@@ -143,7 +143,7 @@
         ...apex,
         title: { ...apex.title, style: textStyle(apex.title?.style, 18, '600') },
         subtitle: { ...apex.subtitle, style: textStyle(apex.subtitle?.style) },
-        dataLabels: { ...apex.dataLabels, style: textStyle(apex.dataLabels?.style, labelSize, '500') },
+        dataLabels: { ...apex.dataLabels, style: textStyle(apex.dataLabels?.style, labelSize, '600') },
         legend: { ...apex.legend, fontSize: minimumSize(apex.legend?.fontSize), fontWeight: 500 },
         xaxis: { ...apex.xaxis, labels: { ...apex.xaxis?.labels, style: textStyle(apex.xaxis?.labels?.style) } },
         yaxis: { ...apex.yaxis, labels: { ...apex.yaxis?.labels, style: textStyle(apex.yaxis?.labels?.style) } },

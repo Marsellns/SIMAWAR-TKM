@@ -60,7 +60,7 @@ test('Highcharts separates titles, chart labels and notes without altering data 
     assert.equal(chart.options.tooltip.style.fontWeight, '400');
     assert.equal(chart.options.tooltip.formatter, formatter);
     assert.deepEqual(chart.options.series[0].data, [20, 30]);
-    assert.equal(chart.options.series[0].dataLabels[0].style.fontWeight, '500');
+    assert.equal(chart.options.series[0].dataLabels[0].style.fontWeight, '600');
     assert.equal(chart.options.series[0].dataLabels[0].formatter, formatter);
     assert.equal(chart.options.series[0].dataLabels[1].enabled, false);
     assert.equal(chart.options.plotOptions.pie.dataLabels, false);
@@ -116,20 +116,20 @@ test('Chart.js keeps scriptable fonts stable across updates and distinguishes th
     assert.equal(options.plugins.legend.labels.font.weight, '500');
     assert.equal(options.plugins.tooltip.bodyFont({}).weight, '400');
     assert.equal(options.plugins.tooltip.titleFont.weight, '600');
-    assert.equal(options.plugins.datalabels.font({}).weight, '500');
+    assert.equal(options.plugins.datalabels.font({}).weight, '600');
     assert.equal(options.plugins.subtitle, false);
     Chart.plugin.beforeUpdate(chart);
     assert.equal(options.scales.x.ticks.font, tickFont);
     assert.equal(Chart.defaults.font.weight, '400');
 });
 
-test('ApexCharts uses lighter labels while preserving existing chart settings', () => {
+test('ApexCharts uses semibold data labels while preserving existing chart settings', () => {
     const { Apex } = load();
     assert.equal(Apex.title.style.fontWeight, '600');
     assert.equal(Apex.subtitle.style.fontWeight, '400');
     assert.equal(Apex.xaxis.labels.style.fontWeight, '400');
     assert.equal(Apex.yaxis.labels.style.fontWeight, '400');
-    assert.equal(Apex.dataLabels.style.fontWeight, '500');
+    assert.equal(Apex.dataLabels.style.fontWeight, '600');
     assert.equal(Apex.legend.fontWeight, 500);
     assert.equal(Apex.tooltip.style.fontWeight, '400');
     assert.equal(Apex.chart.animations.enabled, false);

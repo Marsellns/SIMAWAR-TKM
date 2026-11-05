@@ -659,7 +659,7 @@ document.addEventListener("DOMContentLoaded", async function () {
                                 }
 
                                 ctx.font =
-                                    "700 15px Inter, Arial, sans-serif";
+                                    "600 15px Inter, Arial, sans-serif";
 
                                 ctx.fillStyle = chartTextColor();
 
@@ -1326,7 +1326,7 @@ document.addEventListener("DOMContentLoaded", async function () {
                          */
 
                         ctx.font =
-                            "700 15px Inter, Arial, sans-serif";
+                            "600 16px Inter, Arial, sans-serif";
 
                         ctx.fillStyle =
                             "#ffffff";
@@ -1343,7 +1343,7 @@ document.addEventListener("DOMContentLoaded", async function () {
                          */
 
                         ctx.font =
-                            "700 14px Inter, Arial, sans-serif";
+                            "600 15px Inter, Arial, sans-serif";
 
                         ctx.fillText(
                             pct(percentage),
@@ -1407,7 +1407,7 @@ document.addEventListener("DOMContentLoaded", async function () {
                  */
 
                 ctx.font =
-                    "700 22px Inter, Arial, sans-serif";
+                    "600 24px Inter, Arial, sans-serif";
 
                 ctx.fillStyle = chartTextColor();
 
@@ -1423,7 +1423,7 @@ document.addEventListener("DOMContentLoaded", async function () {
                  */
 
                 ctx.font =
-                    "700 15px Inter, Arial, sans-serif";
+                    "600 16px Inter, Arial, sans-serif";
 
                 ctx.fillStyle = chartTextColor();
 
@@ -1483,7 +1483,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
                 options: commonOptions({
 
-                    cutout: "62%",
+                    cutout: "55%",
 
 
                     plugins: {

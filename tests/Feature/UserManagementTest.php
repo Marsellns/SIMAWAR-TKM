@@ -70,6 +70,26 @@ class UserManagementTest extends TestCase
         $this->assertModelExists($admin);
     }
 
+    public function test_admin_can_replace_an_existing_users_role_with_one_dashboard_role(): void
+    {
+        $admin = $this->userWithRole('admin');
+        $target = $this->userWithRole('manager_nop');
+        $this->actingAs($admin);
+        Filament::setCurrentPanel(Filament::getPanel('report'));
+
+        $action = TestAction::make('changeDashboardAccess')->table($target);
+        Livewire::test(UserManagement::class)
+            ->assertActionHidden(TestAction::make('changeDashboardAccess')->table($admin))
+            ->callAction($action, data: ['role' => 'admin'])
+            ->assertHasActionErrors(['role' => 'in']);
+        $this->assertSame(['manager_nop'], $target->fresh()->getRoleNames()->all());
+
+        Livewire::test(UserManagement::class)
+            ->callAction($action, data: ['role' => 'viewer_po_monitoring'])
+            ->assertHasNoActionErrors();
+        $this->assertSame(['viewer_po_monitoring'], $target->fresh()->getRoleNames()->all());
+    }
+
     public function test_non_admin_cannot_delete_users_even_when_service_is_called_directly(): void
     {
         $viewer = $this->userWithRole('viewer');

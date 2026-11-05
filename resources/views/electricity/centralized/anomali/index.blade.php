@@ -232,7 +232,7 @@ $(function () {
         </div>`;
 
         $('#anomali-modal-body').html(html);
-        anomaliModal.show();
+        anomaliModal.show(this);
     });
 });
 </script>
