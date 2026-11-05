@@ -23,7 +23,10 @@ class RestrictDashboardAccess
             abort_unless($request->routeIs('reports.data-version') || $role->canReadReport($request->route()?->getName()), 403);
         } else {
             // Livewire rechecks the source route when it refreshes an existing component.
-            abort_unless($request->isMethod('POST') && $request->routeIs('logout', 'filament.report.auth.logout', '*livewire.update'), 403);
+            abort_unless($request->isMethod('POST') && (
+                $request->routeIs('logout', 'filament.report.auth.logout', '*livewire.update')
+                || ($user->canAccessNotifications() && $request->routeIs('notifications.read-all'))
+            ), 403);
         }
 
         return $next($request);

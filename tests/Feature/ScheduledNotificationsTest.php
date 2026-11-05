@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\User;
+use App\Notifications\ElectricityAnomalyNotification;
 use Carbon\CarbonImmutable;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -10,13 +11,13 @@ use Illuminate\Mail\Transport\ArrayTransport;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
+use Tests\Concerns\CreatesUsersWithRoles;
 use Tests\Concerns\ReadsEmailAttachments;
 use Tests\TestCase;
 
 class ScheduledNotificationsTest extends TestCase
 {
-    use RefreshDatabase;
-    use ReadsEmailAttachments;
+    use CreatesUsersWithRoles, ReadsEmailAttachments, RefreshDatabase;
 
     protected function tearDown(): void
     {
@@ -46,6 +47,7 @@ class ScheduledNotificationsTest extends TestCase
         config()->set('mail.electricity_alert_to', 'electricity@example.test');
         app('mail.manager')->purge();
         $user = User::factory()->create(['account_status' => 'approved']);
+        $electricityViewer = $this->userWithRole('viewer_electricity');
         $site = DB::table('sites')->insertGetId(['site_id' => 'LOSS-1', 'site_name' => 'Site Loss']);
         DB::table('site_monthly_metrics')->insert([
             'site_id' => $site, 'bulan' => 8, 'tahun' => 2026,
@@ -76,15 +78,20 @@ class ScheduledNotificationsTest extends TestCase
         $this->assertInstanceOf(ArrayTransport::class, $transport);
         $this->assertCount(3, $transport->messages());
         $this->assertSame(3, $user->fresh()->notifications()->count());
+        $this->assertSame(2, $electricityViewer->visibleNotifications()->count());
+        $this->assertSame([ElectricityAnomalyNotification::class], $electricityViewer->visibleNotifications()->pluck('type')->unique()->all());
         $this->artisan('notifications:send-scheduled')->assertSuccessful();
         $this->assertCount(3, $transport->messages());
+        $this->assertSame(2, $electricityViewer->visibleNotifications()->count());
 
         CarbonImmutable::setTestNow('2026-10-02 17:00:00 Asia/Jakarta');
         $this->artisan('notifications:send-scheduled')->assertSuccessful();
         $this->assertCount(6, $transport->messages());
         $this->assertSame(6, $user->fresh()->notifications()->count());
+        $this->assertSame(4, $electricityViewer->visibleNotifications()->count());
         $this->artisan('notifications:send-scheduled')->assertSuccessful();
         $this->assertCount(6, $transport->messages());
+        $this->assertSame(4, $electricityViewer->visibleNotifications()->count());
         foreach ($transport->messages() as $message) {
             $email = $message->getOriginalMessage();
             $rows = $this->attachmentRows($email);
