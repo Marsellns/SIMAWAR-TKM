@@ -524,7 +524,7 @@ document.addEventListener('DOMContentLoaded', () => {
         upsertChart('payment', 'chart-electricity-payment', {
             chart: { type: 'pie' },
             tooltip: { pointFormatter() { return `<b>${fullCurrency(this.y)}</b><br>${numberFormatter.format(this.records)} transaksi`; } },
-            plotOptions: { pie: { innerSize: '66%', borderWidth: 0, dataLabels: { enabled: true, formatter() { return this.y > 0 ? `${this.point.name}<br><b>${percentFormatter.format(this.percentage)}%</b>` : null; }, style: { textOutline: 'none' } } } },
+            plotOptions: { pie: { innerSize: '58%', borderWidth: 0, dataLabels: { enabled: true, distance: 12, formatter() { return this.y > 0 ? `${this.point.name}<br>${percentFormatter.format(this.percentage)}%` : null; }, style: { fontSize: '1rem', fontWeight: '600', textOutline: 'none' } } } },
             series: [{ name: 'Pembayaran', data: points }],
         });
     }
@@ -552,7 +552,7 @@ document.addEventListener('DOMContentLoaded', () => {
         upsertChart('sites', 'chart-electricity-sites', {
             chart: { type: 'pie' },
             tooltip: { pointFormatter() { return `<b>${numberFormatter.format(this.y)} site</b><br>${percentFormatter.format(this.percentage)}%`; } },
-            plotOptions: { pie: { innerSize: '58%', borderWidth: 0, dataLabels: { enabled: true, format: '{point.name}<br><b>{point.y:,.0f}</b>', style: { textOutline: 'none' } } } },
+            plotOptions: { pie: { innerSize: '52%', borderWidth: 0, dataLabels: { enabled: true, distance: 12, format: '{point.name}<br>{point.y:,.0f}', style: { fontSize: '1rem', fontWeight: '600', textOutline: 'none' } } } },
             series: [{ name: 'Site', data: points }],
         });
     }

@@ -304,7 +304,7 @@ $(function () {
             $('#detail-actions').empty();
         }
 
-        detailModal.show();
+        detailModal.show(this);
     });
 });
 </script>

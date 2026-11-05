@@ -4,6 +4,11 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      confirm_target:
+        description: 'Type simawars.web.id to confirm the production deploy'
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -13,12 +18,88 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  eligibility:
+    runs-on: ubuntu-24.04
+    outputs:
+      deploy: ${{ steps.check.outputs.deploy }}
+    steps:
+      - name: Check production deploy trigger
+        id: check
+        env:
+          DEPLOY_ENABLED: ${{ vars.SIMAWARS_DEPLOY_ENABLED }}
+          CONFIRM_TARGET: ${{ inputs.confirm_target }}
+        run: |
+          set -euo pipefail
+          if [[ "$GITHUB_REF" != 'refs/heads/main' ]]; then
+            echo '::error::Production deploy must run from the main branch.'
+            exit 1
+          fi
+          if [[ "$GITHUB_EVENT_NAME" == 'workflow_dispatch' && "$CONFIRM_TARGET" != 'simawars.web.id' ]]; then
+            echo '::error::Type simawars.web.id in confirm_target to authorize this manual production deploy.'
+            exit 1
+          fi
+          if [[ "$GITHUB_EVENT_NAME" == 'push' && "$DEPLOY_ENABLED" != 'true' ]]; then
+            echo '::notice::Automatic production deploy is disabled. Set repository variable SIMAWARS_DEPLOY_ENABLED=true to enable push deploys, or use Run workflow on main for a manual deploy.'
+            echo 'Automatic production deploy is disabled (`SIMAWARS_DEPLOY_ENABLED` is not `true`). Manual dispatch from `main` remains available.' >> "$GITHUB_STEP_SUMMARY"
+            echo 'deploy=false' >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo 'deploy=true' >> "$GITHUB_OUTPUT"
+
   deploy:
-    if: vars.SIMAWARS_DEPLOY_ENABLED == 'true'
+    needs: eligibility
+    if: needs.eligibility.outputs.deploy == 'true'
     runs-on: ubuntu-24.04
     environment: production
+    timeout-minutes: 60
     steps:
+      - name: Validate GitHub production configuration
+        env:
+          CPANEL_HOST: ${{ vars.CPANEL_SSH_HOST }}
+          CPANEL_PORT: ${{ vars.CPANEL_SSH_PORT }}
+          CPANEL_USER: ${{ vars.CPANEL_SSH_USER }}
+          DEPLOY_KEY: ${{ secrets.CPANEL_SSH_PRIVATE_KEY }}
+          KNOWN_HOSTS: ${{ secrets.CPANEL_SSH_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          missing=0
+          for name in CPANEL_HOST CPANEL_PORT CPANEL_USER DEPLOY_KEY KNOWN_HOSTS; do
+            if [[ -z "${!name}" ]]; then
+              case "$name" in
+                DEPLOY_KEY) setting='secret CPANEL_SSH_PRIVATE_KEY' ;;
+                KNOWN_HOSTS) setting='secret CPANEL_SSH_KNOWN_HOSTS' ;;
+                *) setting="variable CPANEL_SSH_${name#CPANEL_}" ;;
+              esac
+              echo "::error::Missing $setting in the production environment or repository settings."
+              missing=1
+            fi
+          done
+          (( missing == 0 )) || exit 1
+          [[ "$CPANEL_HOST" =~ ^[A-Za-z0-9.-]+$ ]] || { echo '::error::CPANEL_SSH_HOST must be a hostname or IP address without spaces or SSH options.'; exit 1; }
+          [[ "$CPANEL_PORT" =~ ^[0-9]+$ ]] && (( 10#$CPANEL_PORT >= 1 && 10#$CPANEL_PORT <= 65535 )) || { echo '::error::CPANEL_SSH_PORT must be a TCP port from 1 to 65535.'; exit 1; }
+          [[ "$CPANEL_USER" =~ ^[A-Za-z0-9._-]+$ ]] || { echo '::error::CPANEL_SSH_USER contains invalid characters.'; exit 1; }
+
       - uses: actions/checkout@v4
+
+      - name: Configure verified SSH connection
+        env:
+          DEPLOY_KEY: ${{ secrets.CPANEL_SSH_PRIVATE_KEY }}
+          KNOWN_HOSTS: ${{ secrets.CPANEL_SSH_KNOWN_HOSTS }}
+          CPANEL_HOST: ${{ vars.CPANEL_SSH_HOST }}
+          CPANEL_PORT: ${{ vars.CPANEL_SSH_PORT }}
+          CPANEL_USER: ${{ vars.CPANEL_SSH_USER }}
+        run: |
+          set -euo pipefail
+          install -d -m 700 "$HOME/.ssh"
+          printf '%s\n' "$DEPLOY_KEY" > "$HOME/.ssh/id_deploy"
+          printf '%s\n' "$KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/id_deploy" "$HOME/.ssh/known_hosts"
+          printf 'Host simawars-cpanel\n  HostName %s\n  Port %s\n  User %s\n  IdentityFile %s/.ssh/id_deploy\n  IdentitiesOnly yes\n  StrictHostKeyChecking yes\n' \
+            "$CPANEL_HOST" "$CPANEL_PORT" "$CPANEL_USER" "$HOME" > "$HOME/.ssh/config"
+          chmod 600 "$HOME/.ssh/config"
+
+      - name: Check cPanel prerequisites without changing the server
+        run: ssh -o BatchMode=yes simawars-cpanel bash -s -- --check-only < scripts/cpanel-activate-release.sh
 
       - uses: actions/setup-node@v4
         with:
@@ -44,28 +125,6 @@ jobs:
           test -n "$archive"
           echo "archive=$archive" >> "$GITHUB_OUTPUT"
           echo "archive_sha256=$(sha256sum "$archive" | cut -d ' ' -f 1)" >> "$GITHUB_OUTPUT"
-
-      - name: Configure verified SSH connection
-        env:
-          DEPLOY_KEY: ${{ secrets.CPANEL_SSH_PRIVATE_KEY }}
-          KNOWN_HOSTS: ${{ secrets.CPANEL_SSH_KNOWN_HOSTS }}
-          CPANEL_HOST: ${{ vars.CPANEL_SSH_HOST }}
-          CPANEL_PORT: ${{ vars.CPANEL_SSH_PORT }}
-          CPANEL_USER: ${{ vars.CPANEL_SSH_USER }}
-        run: |
-          set -euo pipefail
-          test -n "$DEPLOY_KEY"
-          test -n "$KNOWN_HOSTS"
-          test -n "$CPANEL_HOST"
-          test -n "$CPANEL_PORT"
-          test -n "$CPANEL_USER"
-          install -d -m 700 "$HOME/.ssh"
-          printf '%s\n' "$DEPLOY_KEY" > "$HOME/.ssh/id_deploy"
-          printf '%s\n' "$KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
-          chmod 600 "$HOME/.ssh/id_deploy" "$HOME/.ssh/known_hosts"
-          printf 'Host simawars-cpanel\n  HostName %s\n  Port %s\n  User %s\n  IdentityFile %s/.ssh/id_deploy\n  IdentitiesOnly yes\n  StrictHostKeyChecking yes\n' \
-            "$CPANEL_HOST" "$CPANEL_PORT" "$CPANEL_USER" "$HOME" > "$HOME/.ssh/config"
-          chmod 600 "$HOME/.ssh/config"
 
       - name: Upload and activate release
         env:

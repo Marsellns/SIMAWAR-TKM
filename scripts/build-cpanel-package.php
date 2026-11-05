@@ -67,6 +67,7 @@ try {
     foreach (['app', 'bootstrap', 'config', 'database', 'public', 'resources', 'routes', 'deploy'] as $directory) {
         $copy($base.'/'.$directory, $stage.'/'.$directory);
     }
+    $copy($base.'/scripts/cpanel-deploy-check.php', $stage.'/deploy/cpanel/deploy-check.php');
     foreach (['artisan', 'composer.json', 'composer.lock', '.env.cpanel.example'] as $file) {
         $copy($base.'/'.$file, $stage.'/'.$file);
     }

@@ -114,7 +114,7 @@ $(function () {
 
         $('#detail-body').html('<tr><td colspan="2" class="text-center text-body-secondary">Memuat...</td></tr>');
         $('#detail-po-number').text('');
-        detailModal.show();
+        detailModal.show(this);
 
         fetch(`${detailBaseUrl}/${row.id}`, { headers: { 'Accept': 'application/json' } })
             .then((res) => {

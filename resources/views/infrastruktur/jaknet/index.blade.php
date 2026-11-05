@@ -132,7 +132,7 @@ $(function () {
         if (!row) return;
         $('#detail-title').text(row.site_code ?? '');
         $('#detail-body').html(renderDetail(row));
-        detailModal.show();
+        detailModal.show(this);
     });
 });
 </script>

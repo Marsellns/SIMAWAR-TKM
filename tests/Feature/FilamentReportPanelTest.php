@@ -240,6 +240,21 @@ class FilamentReportPanelTest extends TestCase
         $this->withHeader('X-Livewire', 'true')->postJson(Livewire::getUpdateUri(), $payload);
     }
 
+    public function test_dashboard_scope_rechecks_access_when_an_old_livewire_page_refreshes(): void
+    {
+        $user = $this->userWithRole('viewer');
+        $this->actingAs($user);
+        $pnl = $this->reportSnapshot(route('pnl.index'));
+        $electricity = $this->reportSnapshot(route('electricity.dashboard'));
+
+        $user->syncRoles(['viewer_electricity']);
+
+        $this->withHeader('X-Livewire', 'true')->postJson(Livewire::getUpdateUri(), $this->refreshPayload($pnl))
+            ->assertForbidden();
+        $this->withHeader('X-Livewire', 'true')->postJson(Livewire::getUpdateUri(), $this->refreshPayload($electricity))
+            ->assertOk();
+    }
+
     public function test_each_module_registers_its_pages_on_the_existing_panel(): void
     {
         $panel = Filament::getPanel('report');

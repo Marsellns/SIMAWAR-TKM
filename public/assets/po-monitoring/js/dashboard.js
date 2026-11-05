@@ -109,11 +109,13 @@ $(function () {
                 colors: pie ? window.SimasterChartPalette.series : window.SimasterChartPalette.distinctColors(definition.data.length),
                 xAxis: { type: 'category', labels: { style: { color: text } }, lineColor: dark ? '#334155' : '#e2e8f0' },
                 yAxis: { min: 0, allowDecimals: false, title: { text: definition.unit, style: { color: text } }, labels: { style: { color: text } }, gridLineColor: dark ? '#334155' : '#e2e8f0' },
-                legend: { enabled: pie, itemStyle: { color: text }, events: { itemClick(event) { openPoint(event.legendItem); return false; } } },
+                legend: { enabled: pie, itemStyle: { color: text, fontSize: '1rem' }, events: { itemClick(event) { openPoint(event.legendItem); return false; } } },
                 tooltip: { backgroundColor: dark ? '#1e293b' : '#fff', style: { color: text }, formatter() { return `${escapeHtml(this.key)}: <b>${format(this.y)}</b> ${definition.unit}${pie ? ` (${Highcharts.numberFormat(this.percentage, 1)}%)` : ''}`; } },
                 plotOptions: {
-                    series: { cursor: 'pointer', borderWidth: 0, colorByPoint: true, dataLabels: { enabled: !pie, style: { color: text, textOutline: 'none' } }, point: { events: { click() { openPoint(this); } } } },
-                    pie: { innerSize: '55%', showInLegend: true, dataLabels: { enabled: definition.data.length <= 8, format: '{point.name}: {point.percentage:.1f}%', style: { color: text, textOutline: 'none' } } },
+                    series: { cursor: 'pointer', borderWidth: 0, colorByPoint: true, dataLabels: { enabled: !pie, style: { color: text, fontWeight: '600', textOutline: 'none' } }, point: { events: { click() { openPoint(this); } } } },
+                    pie: { innerSize: '50%', showInLegend: true, dataLabels: { enabled: definition.data.length <= 8, distance: 12,
+                        formatter() { return this.y > 0 ? `${format(this.y)} (${Highcharts.numberFormat(this.percentage, 1)}%)` : null; },
+                        style: { color: text, fontSize: '1rem', fontWeight: '600', textOutline: 'none' } } },
                 },
                 series: [{ name: definition.unit, data: definition.data }],
             });

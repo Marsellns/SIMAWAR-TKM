@@ -88,7 +88,9 @@ class OperationalReport extends Page
         $router = app('router');
         $source = $router->getRoutes()->getByName($this->sourceRoute);
         abort_unless($source, 404);
-        abort_unless(auth()->user()?->canAccessPanel(Filament::getPanel('report')), 403);
+        $user = auth()->user();
+        abort_unless($user?->canAccessPanel(Filament::getPanel('report')), 403);
+        abort_unless($user->dashboardViewerRole()?->canReadReport($this->sourceRoute) ?? true, 403);
 
         // Locked route identifiers only select an existing server-side controller.
         // Persistent middleware rechecks its original auth / role requirements.

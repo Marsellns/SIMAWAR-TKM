@@ -2,6 +2,20 @@
 
 Panduan ini untuk hosting dengan SSH/Terminal, cron, Apache/LiteSpeed, dan MySQL. DBeaver adalah aplikasi pengelola MySQL; aplikasi menggunakan koneksi `.env` ke server MySQL yang sama. Data operasional ada dalam database dan berkas dokumen privat.
 
+## Deploy produksi simawars.web.id melalui GitHub Actions
+
+Workflow `.github/workflows/deploy-simawars.yml` menerbitkan paket kode dari commit `main` melalui SSH. Untuk deploy manual, pilih branch `main` pada **Run workflow** dan ketik `simawars.web.id` pada `confirm_target`. Jalur ini tersedia walaupun `SIMAWARS_DEPLOY_ENABLED` belum disetel. Push ke `main` hanya deploy otomatis jika *repository variable* `SIMAWARS_DEPLOY_ENABLED=true`; saat tidak aktif, job pemeriksaan menulis alasan di log dan ringkasan run. Dispatch manual dari branch lain atau tanpa konfirmasi target yang tepat ditolak. Job deploy memakai GitHub environment `production` dan mengikuti aturan proteksi yang dikonfigurasi di sana.
+
+Siapkan konfigurasi GitHub berikut sebelum menjalankan deploy manual. Variabel `CPANEL_SSH_*` dan secret boleh berada pada repository atau environment `production`, tetapi sakelar otomatis `SIMAWARS_DEPLOY_ENABLED` harus berada pada repository karena diperiksa sebelum job masuk ke environment.
+
+- Variables: `CPANEL_SSH_HOST` (hostname/IP SSH), `CPANEL_SSH_PORT` (1–65535), `CPANEL_SSH_USER` (akun cPanel).
+- Secrets: `CPANEL_SSH_PRIVATE_KEY` (private key akun deploy), `CPANEL_SSH_KNOWN_HOSTS` (baris host key yang **sudah diverifikasi** dari penyedia; untuk port selain 22 gunakan format `[host]:port`). Jangan membuat trust otomatis dari `ssh-keyscan` tanpa verifikasi fingerprint.
+- Jika ingin deploy otomatis saat push, set `SIMAWARS_DEPLOY_ENABLED=true` sebagai repository variable secara terpisah. Nilai kosong atau selain `true` membuat push tidak mendeploy, tetapi tidak menghalangi deploy manual.
+
+Di cPanel, pastikan SSH akun tersebut aktif dan dapat memakai `bash`, `unzip`, `sha256sum`, serta PHP CLI 8.2 atau lebih baru. Workflow memerlukan layout release sendiri: document root **tepat** di `$HOME/public_html/simawars.web.id` (direktori biasa dan writable), direktori privat `$HOME/simawars-deploy/shared`, serta `.env` yang dapat dibaca di `$HOME/simawars-deploy/shared/.env`. Layout ini berbeda dari ekstraksi manual ke `/home/USER/simaster` pada bagian 3; jangan menggabungkan kedua lokasi. Siapkan `.env` sesuai bagian konfigurasi produksi di bawah dan pertahankan `APP_KEY` lama bila memindahkan data. PHP **web** untuk `simawars.web.id` juga harus 8.2 atau lebih baru; pemeriksaan SSH hanya membuktikan versi CLI, jadi verifikasi versi web melalui pengaturan domain/hosting sebelum deploy. Siapkan database MySQL dan migrasi yang telah ditinjau lebih dulu; workflow tidak menjalankan migrasi atau seeder.
+
+Urutan workflow: periksa trigger dan konfigurasi GitHub → periksa cPanel lewat SSH tanpa perubahan server → build paket pada commit yang sama → unggah ZIP ke direktori privat → verifikasi checksum, isi paket, `.env`, koneksi database, dan migrasi tertunda → aktifkan release. Kegagalan prasyarat menampilkan `::error::` di GitHub atau `Deployment stopped:` dari skrip cPanel. Bila koneksi SSH gagal, periksa host, port, user, key, dan host key terverifikasi. Pemeriksaan ini tidak membuktikan cron, SMTP, atau fungsi HTTP setelah aktivasi; lakukan verifikasi pada bagian 8. Sebelum deploy aktual, siapkan backup database/dokumen dan paket sebelumnya untuk pemulihan.
+
 Untuk produksi yang sudah memiliki login PHP 8.0, tempatkan modul Laravel pada subdomain dengan document root tersendiri. Sistem utama memilih tujuan berdasarkan role; PHP 8.2 menjalankan seluruh request Laravel. Paket ini memakai login Laravel mandiri. Login otomatis dari sistem utama memerlukan integrasi autentikasi berdasarkan kode/protokol login produksi, yang belum tersedia di workspace. Pengaturan versi PHP saja tidak menghubungkan kedua session login.
 
 ## 1. Syarat hosting

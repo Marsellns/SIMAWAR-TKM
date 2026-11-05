@@ -342,6 +342,10 @@ h1, h2, h3, h4, h5, h6,
     height: 320px;
 }
 
+.infra-overview-chart.infra-pie-chart {
+    height: 300px;
+}
+
 /* Ikon kontekstual di kartu ringkasan Infrastruktur. Tata letak data dan
    target drill-down tetap sama; ikon hanya memperjelas makna setiap metrik. */
 .infra-summary-card-body {

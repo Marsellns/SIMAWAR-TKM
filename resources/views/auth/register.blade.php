@@ -41,12 +41,9 @@
                     <div class="simawar-auth-field">
                         <label for="requested_role">Role yang diminta</label>
                         <select id="requested_role" name="requested_role" @if ($errors->has('requested_role')) aria-invalid="true" @endif required>
-                            <option value="viewer" @selected(old('requested_role', 'viewer') === 'viewer')>Viewer (perlu persetujuan)</option>
-                            <option value="admin" @selected(old('requested_role') === 'admin')>Admin (akses penuh, perlu persetujuan)</option>
-                            <option value="manager_nop" @selected(old('requested_role') === 'manager_nop')>Manager NOP (approval Presales)</option>
-                            <option value="manager_sq" @selected(old('requested_role') === 'manager_sq')>Manager SQ (approval Presales)</option>
-                            <option value="manager_nos" @selected(old('requested_role') === 'manager_nos')>Manager NOS (approval Presales)</option>
-                            <option value="manager_nbae" @selected(old('requested_role') === 'manager_nbae')>Manager NBAE (approval Presales)</option>
+                            @foreach ($roles as $role => $label)
+                                <option value="{{ $role }}" @selected(old('requested_role', 'viewer') === $role)>{{ $label }}</option>
+                            @endforeach
                         </select>
                     </div>
                     <div class="simawar-auth-field">

@@ -239,7 +239,7 @@ $(function () {
         </div>`;
 
         $('#detail-boram-body').html(html);
-        modalDetailBoram.show();
+        modalDetailBoram.show(this);
     });
 
     // Handle Edit Button

@@ -11,6 +11,9 @@ class ModuleNavigation
     public static function groups(): array
     {
         $modules = ReportModuleRegistry::navigation();
+        if ($role = auth()->user()?->dashboardViewerRole()) {
+            $modules = array_filter($modules, fn (array $module): bool => $role->canReadReport($module[2]));
+        }
         $items = [];
         $groups = [];
         foreach ($modules as $sort => $module) {

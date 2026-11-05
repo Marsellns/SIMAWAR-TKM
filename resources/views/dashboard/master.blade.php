@@ -200,7 +200,7 @@
                     </div>
                     <div class="enterprise-card-body">
                         {{-- Donut Chart --}}
-                        <div id="chart-category-donut" style="height: 200px; width: 100%;"></div>
+                        <div id="chart-category-donut" style="height: 240px; width: 100%;"></div>
 
                         {{-- User / Module Access Distribution Breakdown --}}
                         <div class="border-top pt-3 mt-2">
@@ -742,10 +742,15 @@ $(function () {
             exporting: { enabled: false },
             plotOptions: {
                 pie: {
-                    innerSize: '65%',
+                    innerSize: '58%',
                     borderWidth: 0,
                     cursor: 'pointer',
-                    dataLabels: { enabled: true, format: '{point.name}: {point.y} ({point.percentage:.1f}%)' },
+                    dataLabels: {
+                        enabled: true,
+                        distance: -18,
+                        formatter: function () { return this.y > 0 && this.percentage >= 8 ? new Intl.NumberFormat('id-ID').format(this.y) : null; },
+                        style: { color: 'contrast', fontSize: '1rem', fontWeight: '600', textOutline: 'none' }
+                    },
                     showInLegend: true,
                     point: {
                         events: {
@@ -774,7 +779,8 @@ $(function () {
                 layout: 'horizontal',
                 align: 'center',
                 verticalAlign: 'bottom',
-                itemStyle: { color: theme.text, fontSize: '11px' }
+                itemStyle: { color: theme.text, fontSize: '1rem' },
+                labelFormatter: function () { return `${this.name}: ${new Intl.NumberFormat('id-ID').format(this.y)} (${Highcharts.numberFormat(this.percentage, 1)}%)`; }
             },
             series: [{
                 name: 'Total Site',
@@ -1162,7 +1168,7 @@ $(function () {
             exporting: { enabled: false },
             plotOptions: {
                 pie: {
-                    innerSize: '68%',
+                    innerSize: '58%',
                     borderWidth: 0,
                     cursor: 'pointer',
                     dataLabels: { enabled: false },
@@ -1181,7 +1187,7 @@ $(function () {
                 layout: 'horizontal',
                 align: 'center',
                 verticalAlign: 'bottom',
-                itemStyle: { color: theme.text, fontSize: '10px' }
+                itemStyle: { color: theme.text, fontSize: '1rem' }
             },
             series: [{
                 name: 'Items',
@@ -1268,7 +1274,7 @@ $(function () {
             exporting: { enabled: false },
             plotOptions: {
                 pie: {
-                    innerSize: '65%',
+                    innerSize: '58%',
                     borderWidth: 0,
                     cursor: 'pointer',
                     dataLabels: { enabled: false },
@@ -1292,7 +1298,7 @@ $(function () {
                 layout: 'horizontal',
                 align: 'center',
                 verticalAlign: 'bottom',
-                itemStyle: { color: theme.text, fontSize: '11px' }
+                itemStyle: { color: theme.text, fontSize: '1rem' }
             },
             series: [{
                 name: 'Kasus',

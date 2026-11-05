@@ -9,6 +9,7 @@ use App\Filament\Pages\OperationalReport;
 use App\Livewire\ReportNotifications;
 use App\Http\Middleware\EnsureAccountApproved;
 use App\Http\Middleware\RenderReportInFilament;
+use App\Http\Middleware\RestrictDashboardAccess;
 use App\Filament\Modules\ModuleNavigation;
 use App\Filament\Modules\ReportModuleRegistry;
 use Filament\Http\Middleware\Authenticate;
@@ -48,9 +49,9 @@ class ReportPanelProvider extends PanelProvider
             ->sidebarCollapsibleOnDesktop()
             ->sidebarWidth('14rem')
             ->collapsedSidebarWidth('6rem')
-            ->homeUrl(fn () => route('dashboard'))
+            ->homeUrl(fn () => route(auth()->user()?->dashboardRoute() ?? 'dashboard'))
             ->plugins(ReportModuleRegistry::plugins())
-            ->databaseNotifications(livewireComponent: ReportNotifications::class, isLazy: false)
+            ->databaseNotifications(fn () => auth()->user()?->dashboardViewerRole() === null, livewireComponent: ReportNotifications::class, isLazy: false)
             ->userMenuItems([
                 Action::make('accountApprovals')
                     ->label('Persetujuan Akun')
@@ -76,7 +77,7 @@ class ReportPanelProvider extends PanelProvider
                 VerifyCsrfToken::class, SubstituteBindings::class,
                 DisableBladeIconComponents::class, DispatchServingFilamentEvent::class,
             ])
-            ->authMiddleware([Authenticate::class, EnsureAccountApproved::class], isPersistent: true);
+            ->authMiddleware([Authenticate::class, EnsureAccountApproved::class, RestrictDashboardAccess::class], isPersistent: true);
     }
 
     public function boot(): void
@@ -84,7 +85,7 @@ class ReportPanelProvider extends PanelProvider
         Livewire::component('simaster.operational-report', OperationalReport::class);
         Livewire::component('report-notifications', ReportNotifications::class);
         Livewire::addPersistentMiddleware([
-            EnsureAccountApproved::class, RenderReportInFilament::class, RoleMiddleware::class,
+            EnsureAccountApproved::class, RenderReportInFilament::class, RestrictDashboardAccess::class, RoleMiddleware::class,
         ]);
     }
 }

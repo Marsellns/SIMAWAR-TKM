@@ -135,9 +135,10 @@
             draw('pnl-category-chart', {
                 chart: { type: 'pie' },
                 tooltip: { pointFormat: '<b>{point.y}</b> site ({point.percentage:.1f}%)' },
-                plotOptions: { pie: { innerSize: '65%', showInLegend: true, dataLabels: { enabled: false } } },
+                legend: { itemStyle: { fontSize: '1rem' } },
+                plotOptions: { pie: { innerSize: '55%', showInLegend: true, dataLabels: { enabled: false } } },
                 series: [{ name: 'Site', data: data.status.map((row, index) => ({ name: row.name, y: row.y, color: statusDefs[index][3], custom: { filters: { status: row.key } } })) }],
-            }, data.sites_count > 0, 270);
+            }, data.sites_count > 0, 300);
         }
         if (activePnlTab === 'nop') {
             financialChart('pnl-nop-financial-chart', data.nop, 'nop');

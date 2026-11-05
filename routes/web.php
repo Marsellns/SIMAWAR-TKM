@@ -33,7 +33,7 @@ use App\Http\Controllers\PresalesController;
 use App\Http\Controllers\ModuleDashboardController;
 use Illuminate\Support\Facades\Route;
 
-Route::redirect('/', '/dashboard');
+Route::redirect('/', '/dashboard')->name('home');
 
 Route::middleware('guest')->group(function () {
     Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
@@ -101,9 +101,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/{document}', [PresalesController::class, 'show'])->name('show');
         Route::post('/{document}/status', [PresalesController::class, 'updateStatus'])->name('status');
     });
-    Route::get('/po-monitoring/document-circulation', fn () => redirect()->route('presales.index'));
+    Route::get('/po-monitoring/document-circulation', fn () => redirect()->route('presales.index'))->name('po-monitoring.document-circulation.index');
     Route::get('/po-monitoring/document-circulation/create', fn () => redirect()->route('presales.create'));
-    Route::get('/po-monitoring/document-circulation/{document}', fn ($document) => redirect()->route('presales.show', $document));
+    Route::get('/po-monitoring/document-circulation/{document}', fn ($document) => redirect()->route('presales.show', $document))->name('po-monitoring.document-circulation.show');
     Route::post('/po-monitoring/document-circulation', [PresalesController::class, 'store']);
     Route::post('/po-monitoring/document-circulation/{document}/status', [PresalesController::class, 'updateStatus']);
 

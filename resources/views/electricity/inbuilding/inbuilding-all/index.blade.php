@@ -242,7 +242,7 @@ $(function () {
         </div>`;
 
         $('#modal-site-body').html(html);
-        detailModal.show();
+        detailModal.show(this);
 
         const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
         const textColor = isDark ? '#94A3B8' : '#64748B';

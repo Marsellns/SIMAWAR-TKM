@@ -7,45 +7,66 @@ fail() {
     exit 1
 }
 
-[[ $# -eq 2 ]] || fail 'expected commit SHA and ZIP SHA-256'
-commit="$1"
-expected_zip_hash="$2"
-[[ "$commit" =~ ^[0-9a-f]{40}$ ]] || fail 'invalid commit SHA'
-[[ "$expected_zip_hash" =~ ^[0-9a-f]{64}$ ]] || fail 'invalid ZIP SHA-256'
+check_only=false
+if [[ $# -eq 1 && "$1" == '--check-only' ]]; then
+    check_only=true
+else
+    [[ $# -eq 2 ]] || fail 'expected --check-only or commit SHA and ZIP SHA-256'
+    commit="$1"
+    expected_zip_hash="$2"
+    [[ "$commit" =~ ^[0-9a-f]{40}$ ]] || fail 'invalid commit SHA'
+    [[ "$expected_zip_hash" =~ ^[0-9a-f]{64}$ ]] || fail 'invalid ZIP SHA-256'
+fi
 
 home_dir="$(cd "$HOME" && pwd -P)"
 deploy_root="$home_dir/simawars-deploy"
 docroot="$home_dir/public_html/simawars.web.id"
-archive="$deploy_root/inbox/$commit.zip"
-release="$deploy_root/releases/$commit"
 shared="$deploy_root/shared"
 current="$deploy_root/current"
 
 [[ -d "$docroot" && ! -L "$docroot" ]] || fail "domain document root is missing or is a symlink: $docroot"
 [[ "$(cd "$docroot" && pwd -P)" == "$docroot" ]] || fail 'domain document root resolves elsewhere'
-[[ -f "$archive" && ! -L "$archive" ]] || fail 'release ZIP is missing'
-[[ -f "$shared/.env" && ! -L "$shared/.env" ]] || fail "configure $shared/.env before enabling automatic deployment"
+[[ -w "$docroot" ]] || fail "domain document root is not writable: $docroot"
+[[ -d "$deploy_root" && ! -L "$deploy_root" && -w "$deploy_root" ]] || fail "create a writable deployment directory: $deploy_root"
+[[ -d "$shared" && ! -L "$shared" ]] || fail "create a regular shared directory: $shared"
+[[ -f "$shared/.env" && ! -L "$shared/.env" && -r "$shared/.env" ]] || fail "configure readable $shared/.env before deployment"
 [[ ! -e "$current" || -L "$current" ]] || fail 'current release path is not a symlink'
 
-actual_zip_hash="$(sha256sum "$archive" | cut -d ' ' -f 1)"
-[[ "$actual_zip_hash" == "$expected_zip_hash" ]] || fail 'release ZIP checksum mismatch'
-command -v unzip >/dev/null 2>&1 || fail 'unzip is unavailable'
-unzip -tq "$archive" >/dev/null || fail 'release ZIP is damaged'
-
-while IFS= read -r entry; do
-    [[ "$entry" == 'RELEASE.json' || "$entry" == simaster/* ]] || fail "unexpected archive entry: $entry"
-    [[ "$entry" != /* && "$entry" != *'/../'* && "$entry" != ../* && "$entry" != *'/..' ]] ||
-        fail "unsafe archive entry: $entry"
-done < <(unzip -Z1 "$archive")
-
+command -v unzip >/dev/null 2>&1 || fail 'unzip is unavailable on cPanel'
+command -v sha256sum >/dev/null 2>&1 || fail 'sha256sum is unavailable on cPanel'
 php_bin=''
-for candidate in /opt/cpanel/ea-php82/root/usr/bin/php /opt/alt/php82/usr/bin/php "$(command -v php || true)"; do
-    if [[ -n "$candidate" && -x "$candidate" ]] && "$candidate" -r 'exit(version_compare(PHP_VERSION, "8.2.0", ">=") ? 0 : 1);'; then
+for candidate in /opt/cpanel/ea-php*/root/usr/bin/php /opt/alt/php*/usr/bin/php \
+    "$(command -v php || true)"; do
+    [[ -n "$candidate" && -x "$candidate" ]] || continue
+    version_line="$("$candidate" -v 2>/dev/null | head -n 1)" || continue
+    if [[ "$version_line" =~ ^PHP[[:space:]]+([0-9]+)\.([0-9]+)\.([0-9]+) ]] &&
+        (( 10#${BASH_REMATCH[1]} > 8 || (10#${BASH_REMATCH[1]} == 8 && 10#${BASH_REMATCH[2]} >= 2) )); then
         php_bin="$candidate"
         break
     fi
 done
-[[ -n "$php_bin" ]] || fail 'PHP CLI 8.2 or newer is unavailable'
+[[ -n "$php_bin" ]] || fail 'PHP CLI 8.2 or newer is unavailable; configure a compatible CLI runtime'
+
+if "$check_only"; then
+    printf 'cPanel prerequisites passed: document root, shared .env, PHP CLI, and archive tools are available.\n'
+    exit 0
+fi
+
+archive="$deploy_root/inbox/$commit.zip"
+release="$deploy_root/releases/$commit"
+[[ -f "$archive" && ! -L "$archive" ]] || fail 'release ZIP is missing'
+
+actual_zip_hash="$(sha256sum "$archive" | cut -d ' ' -f 1)"
+[[ "$actual_zip_hash" == "$expected_zip_hash" ]] || fail 'release ZIP checksum mismatch'
+unzip -tq "$archive" >/dev/null || fail 'release ZIP is damaged'
+
+archive_entries="$(unzip -Z1 "$archive")" || fail 'cannot list release ZIP entries'
+[[ -n "$archive_entries" ]] || fail 'release ZIP has no entries'
+while IFS= read -r entry; do
+    [[ "$entry" == 'RELEASE.json' || "$entry" == simaster/* ]] || fail "unexpected archive entry: $entry"
+    [[ "$entry" != /* && "$entry" != *'/../'* && "$entry" != ../* && "$entry" != *'/..' ]] ||
+        fail "unsafe archive entry: $entry"
+done <<< "$archive_entries"
 
 mkdir -p "$deploy_root/releases" "$shared"
 if [[ -d "$release" && ! -L "$release" ]]; then
@@ -90,8 +111,8 @@ fi
 
 [[ -f "$release/artisan" && -f "$release/public/build/manifest.json" ]] ||
     fail 'release is missing Laravel or Vite files'
-package_commit="$("$php_bin" -r '$r=json_decode(file_get_contents($argv[1]),true,512,JSON_THROW_ON_ERROR); echo $r["source_commit"] ?? "";' "$release/RELEASE.json")"
-[[ "$package_commit" == "$commit" ]] || fail 'package commit does not match GitHub push'
+"$php_bin" "$release/deploy/cpanel/deploy-check.php" release "$release/RELEASE.json" "$commit" ||
+    fail 'package commit does not match the GitHub Actions commit'
 (
     cd "$release"
     "$php_bin" deploy/cpanel/preflight.php

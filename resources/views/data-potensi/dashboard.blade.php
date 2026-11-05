@@ -32,7 +32,7 @@
     .feasibility-mla-chart { position: relative; height: 220px; }
     .feasibility-mla-chart > div:first-child { height: 220px; }
     .feasibility-donut-total { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; flex-direction: column; pointer-events: none; }
-    .feasibility-donut-total strong { font-size: 1.8rem; font-weight: 700; }
+    .feasibility-donut-total strong { font-size: 1.8rem; font-weight: 600; }
     .feasibility-donut-total span { color: var(--bs-secondary-color); font-size: .8rem; }
     .feasibility-mla-values { display: grid; gap: .65rem; margin: .5rem 0 0; padding: 0; list-style: none; }
     .feasibility-mla-values li { display: flex; align-items: center; gap: .65rem; font-size: .9rem; }
@@ -233,7 +233,7 @@ $(function () {
         draw('feasibility-mla-chart', data.mla.some(point => point.y > 0), {
             chart: { type: 'pie', height: 220, spacing: [5, 0, 5, 0] }, legend: { enabled: false },
             tooltip: { formatter() { return `<b>${escape(this.name)}</b><br>${number(this.y)} site (${Highcharts.numberFormat(this.percentage, 1, ',', '.')}%)`; } },
-            plotOptions: { pie: { innerSize: '74%', size: '95%', dataLabels: { enabled: false }, borderRadius: 3 }, series: {point:{events:{click() {
+            plotOptions: { pie: { innerSize: '65%', size: '95%', dataLabels: { enabled: false }, borderRadius: 3 }, series: {point:{events:{click() {
                 window.SimasterFeasibilityDetails.open({title:'Site berdasarkan Status MLA', filters:{status_mla:this.name}});
             }}}} },
             series: [{ name: 'Site', data: data.mla.map(point => ({ ...point, color: statusColors[point.name] || '#a78bfa' })) }],

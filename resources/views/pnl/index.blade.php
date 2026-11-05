@@ -126,7 +126,7 @@
                     <h2 class="h6 mb-0">Komposisi Status Site</h2>
                 </div>
                 <div class="card-body">
-                    <div id="pnl-category-chart" style="height: 270px; width: 100%;"></div>
+                    <div id="pnl-category-chart" style="height: 300px; width: 100%;"></div>
                 </div>
             </div>
         </div>
