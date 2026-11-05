@@ -51,7 +51,7 @@ class ReportPanelProvider extends PanelProvider
             ->collapsedSidebarWidth('6rem')
             ->homeUrl(fn () => route(auth()->user()?->dashboardRoute() ?? 'dashboard'))
             ->plugins(ReportModuleRegistry::plugins())
-            ->databaseNotifications(fn () => auth()->user()?->dashboardViewerRole() === null, livewireComponent: ReportNotifications::class, isLazy: false)
+            ->databaseNotifications(fn () => auth()->user()?->canAccessNotifications() ?? false, livewireComponent: ReportNotifications::class, isLazy: false)
             ->userMenuItems([
                 Action::make('accountApprovals')
                     ->label('Persetujuan Akun')

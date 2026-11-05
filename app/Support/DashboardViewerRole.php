@@ -49,6 +49,7 @@ enum DashboardViewerRole: string
 
         return match ($this) {
             self::Electricity => Str::is([
+                'notifications.index', 'notifications.read',
                 'electricity.dashboard.data', 'electricity.payment-detail',
                 'electricity.*.index', 'electricity.*.data', 'electricity.*.show',
                 'electricity.*.export-excel', 'electricity.*.chart-data',

@@ -33,8 +33,14 @@ class DashboardViewerAccessTest extends TestCase
 
         $page = $this->get($home)->assertOk()
             ->assertSee('data-group-label="'.e($group).'"', false)
-            ->assertDontSee('data-group-label="Dashboard"', false)
-            ->assertDontSee('fi-topbar-database-notifications-btn', false);
+            ->assertDontSee('data-group-label="Dashboard"', false);
+        if ($role === 'viewer_electricity') {
+            $page->assertSee('fi-topbar-database-notifications-btn', false);
+            $this->get('/notifications')->assertOk();
+        } else {
+            $page->assertDontSee('fi-topbar-database-notifications-btn', false);
+            $this->get('/notifications')->assertForbidden();
+        }
         $this->getJson($dataUrl)->assertOk();
         $this->getJson('/reports/data-version')->assertOk();
 
@@ -46,7 +52,7 @@ class DashboardViewerAccessTest extends TestCase
             }
         }
 
-        foreach (['/dashboard/chart-data', '/api/dashboard/pnl-summary', '/infrastruktur', '/data-potensi', '/notifications', '/report/user-management'] as $url) {
+        foreach (['/dashboard/chart-data', '/api/dashboard/pnl-summary', '/infrastruktur', '/data-potensi', '/report/user-management'] as $url) {
             $this->getJson($url)->assertForbidden();
         }
 

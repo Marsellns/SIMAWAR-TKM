@@ -3,11 +3,13 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Notifications\ElectricityAnomalyNotification;
 use App\Support\DashboardViewerRole;
 use Database\Factories\UserFactory;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Panel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
@@ -41,6 +43,25 @@ class User extends Authenticatable implements FilamentUser
     public function dashboardRoute(): string
     {
         return $this->dashboardViewerRole()?->dashboardRoute() ?? 'dashboard';
+    }
+
+    public function canAccessNotifications(): bool
+    {
+        return $this->account_status === 'approved'
+            && in_array($this->dashboardViewerRole(), [null, DashboardViewerRole::Electricity], true);
+    }
+
+    public function visibleNotifications(): MorphMany
+    {
+        $notifications = $this->notifications();
+        if ($role = $this->dashboardViewerRole()) {
+            $notifications->whereIn('type', match ($role) {
+                DashboardViewerRole::Electricity => [ElectricityAnomalyNotification::class],
+                default => [],
+            });
+        }
+
+        return $notifications;
     }
 
     /**
