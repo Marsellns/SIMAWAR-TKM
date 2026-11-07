@@ -21,6 +21,7 @@
         "bootstrap": "^5.3.3",
         "datatables.net": "^2.1.8",
         "datatables.net-dt": "^2.1.8",
-        "jquery": "^3.7.1"
+        "jquery": "^3.7.1",
+        "leaflet": "^1.9.4"
     }
 }

@@ -43,6 +43,8 @@ Route::middleware('guest')->group(function () {
 });
 
 Route::middleware('auth')->group(function () {
+    Route::get('/reports/site-map/{module}', \App\Http\Controllers\DashboardSiteMapController::class)
+        ->whereIn('module', ['pnl', 'feasibility', 'infrastructure', 'electricity', 'recurring', 'equipment'])->name('reports.site-map');
     Route::get('/reports/data-version', fn () => response()->json(['version' => \App\Support\ReportDataVersion::current()])->header('Cache-Control', 'private, no-store'))->name('reports.data-version');
     Route::middleware('role:admin')->prefix('operations/{dataset}')->where(['dataset' => implode('|', array_keys(\App\Support\OperationalDatasets::DEFINITIONS))])->group(function () {
         Route::get('/create', [\App\Http\Controllers\OperationalDataEntryController::class, 'create'])->name('operations.create');

@@ -897,6 +897,7 @@ $(function () {
             dataParams.ownership_scope = ownershipScope;
         }
         $.getJSON(@json(route('infrastruktur.dashboard.data')), dataParams).done(function (data) {
+            globalThis.SimasterSiteMap?.refresh(dataParams);
             Object.entries(data.cards).forEach(([key, value]) => {
                 const el = root.find('.infra-card-' + key);
                 if (el.length) el.text(key === 'risk_value' ? 'Rp ' + new Intl.NumberFormat('id-ID').format(value) : new Intl.NumberFormat('id-ID').format(value));
