@@ -1328,6 +1328,7 @@ $(function () {
     function renderAllCharts(res) {
         if (!res) return;
         cachedChartData = res;
+        globalThis.SimasterSiteMap?.refresh({ tahun: res.filters?.tahun, bulan: res.filters?.all_months ? 'all' : res.filters?.bulan || 'all', nop: res.filters?.nop });
         const global = res.global_summary || {};
         if (global.infraTotal !== undefined) $('#kpi-infra-count').text(Number(global.infraTotal).toLocaleString('id-ID'));
         if (global.poCount !== undefined) $('#kpi-po-count').text(Number(global.poCount).toLocaleString('id-ID'));

@@ -28,6 +28,8 @@ Panduan pemindahan ke produksi cPanel Jagoan Hosting: [docs/deploy-cpanel.md](do
 - [Panduan pengelolaan database](docs/database.md): setup, migration, import dataset, backup, restore, dan checklist untuk penerus project.
 
 - [Filament per modul](docs/filament-modules.md): plugin, custom Page setiap modul/submodul, dan pendaftaran navigasi pada panel yang sama.
+- [Peta site per modul](docs/dashboard-site-map.md): sumber koordinat, Plus Code, filter NOP, dan persiapan data lokasi.
+- [Deploy peta melalui cPanel Git](docs/deploy-site-map-cpanel.md): persiapan migrasi, transfer koordinat privat, dan urutan Deploy HEAD Commit.
 
 ## Learning Laravel
 

@@ -139,6 +139,7 @@ $(function () {
 
     const year = new URLSearchParams(window.location.search).get('tahun') || 'all';
     $.getJSON(@json(route('infrastruktur.dashboard.data')), { tahun: year }, function (data) {
+        globalThis.SimasterSiteMap?.refresh({ tahun: year });
         Object.entries(data.cards).forEach(([key, value]) => {
             const el = $('#infra-' + key);
             if (el.length) el.text(key === 'risk_value' ? 'Rp ' + new Intl.NumberFormat('id-ID').format(value) : new Intl.NumberFormat('id-ID').format(value));

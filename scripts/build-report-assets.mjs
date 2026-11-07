@@ -36,8 +36,11 @@ for (const [source, target] of [
     ['node_modules/jquery/dist/jquery.min.js', 'jquery-3.7.1.min.js'],
     ['node_modules/bootstrap/dist/js/bootstrap.bundle.min.js', 'bootstrap-5.3.3.bundle.min.js'],
     ['node_modules/datatables.net/js/dataTables.min.js', 'datatables-2.1.8.min.js'],
+    ['node_modules/leaflet/dist/leaflet.js', 'leaflet-1.9.4.js'],
+    ['node_modules/leaflet/dist/leaflet.css', 'leaflet-1.9.4.css'],
 ]) {
     const content = (await fs.readFile(source, 'utf8')).replace(/\/\/# sourceMappingURL=.*$/gm, '');
     await fs.writeFile(`public/vendor/simaster/${target}`, content);
 }
+await fs.cp('node_modules/leaflet/dist/images', 'public/vendor/simaster/images', { recursive: true });
 console.log('Report CSS scoped; local JavaScript assets published.');

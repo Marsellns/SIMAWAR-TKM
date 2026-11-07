@@ -20,7 +20,14 @@ class RestrictDashboardAccess
                 return to_route($role->dashboardRoute());
             }
 
-            abort_unless($request->routeIs('reports.data-version') || $role->canReadReport($request->route()?->getName()), 403);
+            $mapModule = match ($role) {
+                \App\Support\DashboardViewerRole::Electricity => 'electricity',
+                \App\Support\DashboardViewerRole::ProfitLoss => 'pnl',
+                \App\Support\DashboardViewerRole::EquipmentRelocation => 'equipment',
+                default => null,
+            };
+            $canReadMap = $request->routeIs('reports.site-map') && $mapModule !== null && $request->route('module') === $mapModule;
+            abort_unless($canReadMap || $request->routeIs('reports.data-version') || $role->canReadReport($request->route()?->getName()), 403);
         } else {
             // Livewire rechecks the source route when it refreshes an existing component.
             abort_unless($request->isMethod('POST') && (
