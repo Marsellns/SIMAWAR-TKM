@@ -643,7 +643,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function renderAll(data) {
-        globalThis.SimasterSiteMap?.refresh({ scope: data.filters.scope, nop: data.filters.nop });
         renderKpis(data);
         renderBillingChart(data);
         renderPaymentChart(data);
