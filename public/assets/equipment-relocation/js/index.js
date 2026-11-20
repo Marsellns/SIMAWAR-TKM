@@ -3712,7 +3712,6 @@ document.addEventListener("DOMContentLoaded", async function () {
        ========================================================= */
 
     function renderDashboard() {
-        globalThis.SimasterSiteMap?.refresh({ sites: [...new Set(getFilteredData().map(item => item.site_id))].sort() });
 
         updateKPI();
 

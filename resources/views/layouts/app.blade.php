@@ -8,6 +8,5 @@
     </div>
 @endif
 @yield('content')
-@include('components.dashboard-site-map')
 @include('reports.scripts')
 @stack('scripts')
